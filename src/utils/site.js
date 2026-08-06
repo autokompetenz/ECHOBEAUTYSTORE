@@ -1,0 +1,20 @@
+export const SITE = {
+  name: 'Echo Beauty Store',
+  legalName: 'Echo Beauty Store',
+  city: 'Cotonou',
+  country: 'Bénin',
+  email: 'contact@echobeautystore.bj',
+  phone: '+229 97 00 00 00',
+  whatsapp: '22997000000',
+  address: 'Cotonou, Bénin',
+  ifu: 'IFU : à compléter',
+  rccm: 'RCCM : à compléter',
+  currency: 'FCFA',
+  currencyCode: 'XOF',
+  delivery: 'Livraison à Cotonou en 24-48h, partout au Bénin',
+  hours: [
+    { day: 'Lundi – Vendredi', hours: '09:00 – 18:00' },
+    { day: 'Samedi', hours: '09:00 – 14:00' },
+    { day: 'Dimanche', hours: 'Fermé' },
+  ],
+};
