@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { orderAPI } from '../services/api';
-import { useCartStore, useAuthStore, useToastStore, useLangStore } from '../store';
-import { formatFCFA } from '../utils/helpers';
+import { useCartStore, useToastStore, useLangStore } from '../store';
+import { formatFCFA, buildWhatsAppOrderLink } from '../utils/helpers';
 import { Loader } from '../components/UI';
 import { t } from '../utils/i18n';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import api from '../services/api';
 
 /* ── CheckoutPanel ── */
-function CheckoutPanel({ lang, total, shippingAddress, setShippingAddress, notes, setNotes, placing, handleOrder, isGuest }) {
+function CheckoutPanel({ lang, total, onOrderWhatsApp }) {
   const l = lang || 'fr';
 
   return (
@@ -36,90 +34,21 @@ function CheckoutPanel({ lang, total, shippingAddress, setShippingAddress, notes
         </div>
       </div>
 
-        {/* Formulaire commande */}
-      <form onSubmit={handleOrder} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding:20, display:'flex', flexDirection:'column', gap:14, boxShadow:'var(--shadow-sm)' }}>
-        <p style={{ fontSize:11, fontWeight:800, letterSpacing:'0.3em', textTransform:'uppercase', color:'var(--red)' }}>
-          {l==='fr'?'Livraison':l==='en'?'Delivery':l==='de'?'Lieferung':l==='es'?'Entrega':l==='it'?'Consegna':'Entrega'}
-        </p>
-
-        {/* Champs invité uniquement */}
-        {isGuest && (
-          <>
-            <div>
-              <label style={{ display:'block', fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:8 }}>
-                {l==='fr'?'Nom complet *':l==='en'?'Full name *':l==='de'?'Vollständiger Name *':l==='es'?'Nombre completo *':l==='it'?'Nome completo *':'Nome completo *'}
-              </label>
-              <input type="text" required name="fullName"
-                placeholder={l==='fr'?'Votre nom et prénom':l==='en'?'Your full name':'Your full name'}
-                className="input-luxury" style={{ fontSize:15 }} />
-            </div>
-
-            <div>
-              <label style={{ display:'block', fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:8 }}>
-                Email *
-              </label>
-              <input type="email" required name="email"
-                placeholder="votre@email.com"
-                className="input-luxury" style={{ fontSize:15 }} />
-            </div>
-
-            <div>
-              <label style={{ display:'block', fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:8 }}>
-                {t('phone', l)} *
-              </label>
-              <input type="tel" required name="phone"
-                placeholder="+39 000 000 0000"
-                className="input-luxury" style={{ fontSize:15 }} />
-            </div>
-          </>
-        )}
-
-        {/* Adresse */}
-        <div>
-          <label style={{ display:'block', fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:8 }}>
-            {t('delivery_addr', l)}
-          </label>
-          <textarea
-            value={shippingAddress}
-            onChange={(e) => setShippingAddress(e.target.value)}
-            rows={4} required
-            placeholder={t('delivery_ph', l)}
-            className="input-luxury"
-            style={{ resize:'vertical', minHeight:100, lineHeight:1.6, fontSize:15 }}
-          />
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label style={{ display:'block', fontSize:12, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:8 }}>
-            {t('notes_label', l)}
-          </label>
-          <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)}
-            placeholder={t('notes_ph', l)}
-            className="input-luxury" style={{ fontSize:15 }} />
-        </div>
-
-        {/* Bandeau paiement */}
-        <div style={{ background:'var(--red-bg)', border:'1px solid var(--red-border)', borderRadius:8, padding:'12px 16px', display:'flex', alignItems:'center', gap:12 }}>
-          <span style={{ fontSize:20 }}>💳</span>
-          <p style={{ fontSize:13, color:'var(--text-2)', lineHeight:1.5 }}>
-            {l==='fr'?'Paiement par virement bancaire sécurisé. Les coordonnées bancaires vous seront communiquées par email après confirmation de votre commande.':
-             l==='en'?'Payment by secure bank transfer. Bank details will be sent to you by email after order confirmation.':
-             l==='de'?'Zahlung per sicherem Banküberweisung. Bankdaten werden Ihnen nach Auftragsbestätigung per E-Mail mitgeteilt.':
-             l==='es'?'Pago por transferencia bancaria segura. Los datos bancarios se le comunicarán por email tras la confirmación del pedido.':
-             l==='it'?'Pagamento tramite bonifico bancario sicuro. I dati bancari vi saranno comunicati per email dopo la conferma dell\'ordine.':
-             'Pagamento por transferência bancária segura. Os dados bancários serão enviados por email após a confirmação do pedido.'}
-          </p>
-        </div>
-
-        <button type="submit" disabled={placing} className="btn-primary"
-          style={{ justifyContent:'center', padding:'15px 20px', fontSize:14, width:'100%' }}>
-          {placing ? '⏳ ...' : '✓ ' + t('place_order', l)}
+      {/* Commande directe WhatsApp */}
+      <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding:20, display:'flex', flexDirection:'column', gap:14, boxShadow:'var(--shadow-sm)' }}>
+        <button type="button" onClick={onOrderWhatsApp} className="btn-primary"
+          style={{ justifyContent:'center', padding:'16px 20px', fontSize:15, width:'100%', background:'#25D366', borderColor:'#25D366' }}>
+          💬 {l==='fr'?'Commander sur WhatsApp':l==='en'?'Order on WhatsApp':l==='de'?'Auf WhatsApp bestellen':l==='es'?'Pedir por WhatsApp':l==='it'?'Ordina su WhatsApp':'Encomendar no WhatsApp'}
         </button>
-        <p style={{ fontSize:12, textAlign:'center', color:'var(--text-3)' }}>
-          ✉ {t('order_email_note', l)}
+        <p style={{ fontSize:12, textAlign:'center', color:'var(--text-3)', lineHeight:1.6 }}>
+          {l==='fr'?'Votre commande est pré-remplie dans le message. Précisez simplement votre nom et votre adresse de livraison pour confirmer.':
+           l==='en'?'Your order is pre-filled in the message. Just add your name and delivery address to confirm.':
+           l==='de'?'Ihre Bestellung ist im Nachricht vorausgefüllt. Geben Sie einfach Ihren Namen und Ihre Lieferadresse an.':
+           l==='es'?'Tu pedido está precargado en el mensaje. Solo añade tu nombre y dirección de entrega.':
+           l==='it'?'Il tuo ordine è precompilato nel messaggio. Aggiungi solo nome e indirizzo di consegna.':
+           'Seu pedido está pré-preenchido na mensagem. Basta adicionar seu nome e endereço de entrega.'}
         </p>
-      </form>
+      </div>
     </div>
   );
 }
@@ -127,17 +56,9 @@ function CheckoutPanel({ lang, total, shippingAddress, setShippingAddress, notes
 /* ── Main Cart ── */
 export default function Cart() {
   const { cartItems, total, loading, fetchCart, removeItem, clear } = useCartStore();
-  const { isAuthenticated } = useAuthStore();
   const { addToast } = useToastStore();
   const { lang } = useLangStore();
   const { isMobile } = useBreakpoint();
-  const navigate = useNavigate();
-
-  const [shippingAddress, setShippingAddress] = useState('');
-  const [notes, setNotes] = useState('');
-  const [placing, setPlacing] = useState(false);
-
-  const isGuest = !isAuthenticated;
 
   useEffect(() => { fetchCart(); }, []);
 
@@ -148,39 +69,18 @@ export default function Cart() {
     } catch { addToast('Erreur', 'error'); }
   };
 
-  const handleOrder = async (e) => {
-    e.preventDefault();
-    if (!shippingAddress.trim()) {
-      addToast(t('delivery_addr', lang).replace(' *', '') + ' requis', 'warning');
-      return;
-    }
-
-    try {
-      setPlacing(true);
-
-      if (isGuest) {
-        // Commande invité
-        const formData = new FormData(e.target);
-        const orderData = {
-          shippingAddress,
-          notes,
-          customerName:  formData.get('fullName'),
-          customerEmail: formData.get('email'),
-          customerPhone: formData.get('phone'),
-          items: cartItems.map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: i.product.price })),
-        };
-        const { data } = await api.post('/orders/guest', orderData);
-        clear();
-        navigate(`/order-confirm/${data.orderNumber}`);
-      } else {
-        // Commande utilisateur connecté (route existante)
-        const { data } = await orderAPI.create({ shippingAddress, notes });
-        fetchCart();
-        navigate(`/order-confirm/${data.orderNumber}`);
-      }
-    } catch (err) {
-      addToast(err.response?.data?.error || 'Erreur', 'error');
-    } finally { setPlacing(false); }
+  const handleOrderWhatsApp = () => {
+    const order = {
+      items: cartItems.map(i => ({
+        product: { id: i.productId, name: i.product?.name },
+        quantity: i.quantity,
+        unitPrice: i.product?.price || 0,
+      })),
+      totalPrice: total,
+    };
+    window.open(buildWhatsAppOrderLink(order), '_blank');
+    clear();
+    addToast(lang === 'fr' ? 'Redirection vers WhatsApp…' : 'Redirecting to WhatsApp…', 'success');
   };
 
   const l = lang || 'fr';
@@ -274,13 +174,7 @@ export default function Cart() {
               <CheckoutPanel
                 lang={l}
                 total={total}
-                shippingAddress={shippingAddress}
-                setShippingAddress={setShippingAddress}
-                notes={notes}
-                setNotes={setNotes}
-                placing={placing}
-                handleOrder={handleOrder}
-                isGuest={isGuest}
+                onOrderWhatsApp={handleOrderWhatsApp}
               />
             </div>
           </div>

@@ -7,8 +7,10 @@ export function buildWhatsAppOrderLink(order) {
 
   lines.push('🛒 *NOUVELLE COMMANDE*');
   lines.push('');
-  lines.push(`N° : *${order.orderNumber}*`);
-  lines.push('');
+  if (order.orderNumber) {
+    lines.push(`N° : *${order.orderNumber}*`);
+    lines.push('');
+  }
   lines.push('*PRODUITS :*');
   (order.items || []).forEach((item, i) => {
     const p = item.product || {};
