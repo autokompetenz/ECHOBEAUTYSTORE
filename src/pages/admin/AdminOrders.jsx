@@ -5,7 +5,6 @@ import { formatFCFA, formatDate } from '../../utils/helpers';
 import { StatusBadge, Loader } from '../../components/UI';
 
 const STATUS_LABELS = { pending:'En attente', confirmed:'Confirmée', processing:'En traitement', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
-const PAYMENT_FR = { full:'Intégral (-5%)', deposit:'Acompte 25%', monthly:'Mensualités' };
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -76,7 +75,7 @@ export default function AdminOrders() {
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:14 }}>
               <thead>
                 <tr style={{ borderBottom:'1px solid var(--border)' }}>
-                  {['N° BC','Client','Date','Montant','Mode','Statut','Action'].map(h => (
+                  {['N° BC','Client','Date','Montant','Statut','Action'].map(h => (
                     <th key={h} style={{ textAlign:'left', fontSize:11, fontWeight:800, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--text-3)', padding:'14px 20px', background:'var(--bg-card2)' }}>{h}</th>
                   ))}
                 </tr>
@@ -95,11 +94,6 @@ export default function AdminOrders() {
                     </td>
                     <td style={{ padding:'14px 20px', color:'var(--text-2)', fontSize:13, fontWeight:500 }}>{formatDate(order.createdAt)}</td>
                     <td style={{ padding:'14px 20px', fontWeight:800, color:'var(--text)', fontSize:16, letterSpacing:'-0.01em' }}>{formatFCFA(order.totalPrice)}</td>
-                    <td style={{ padding:'14px 20px' }}>
-                      <span style={{ fontSize:11, background:'var(--bg-card2)', color:'var(--text-2)', padding:'5px 12px', borderRadius:6, fontWeight:700, letterSpacing:'0.04em', border:'1px solid var(--border)' }}>
-                        {PAYMENT_FR[order.paymentType]}
-                      </span>
-                    </td>
                     <td style={{ padding:'14px 20px' }}><StatusBadge status={order.status} /></td>
                     <td style={{ padding:'14px 20px' }}>
                       <Link to={`/admin/orders/${order.id}`} className="btn-gold" style={{ fontSize:12, padding:'10px 18px', letterSpacing:'0.05em' }}>Gérer →</Link>
@@ -107,7 +101,7 @@ export default function AdminOrders() {
                   </tr>
                 ))}
                 {orders.length === 0 && (
-                  <tr><td colSpan={7} style={{ padding:'48px', textAlign:'center', color:'var(--text-3)', fontSize:15, fontWeight:500 }}>Aucune commande trouvée</td></tr>
+                  <tr><td colSpan={6} style={{ padding:'48px', textAlign:'center', color:'var(--text-3)', fontSize:15, fontWeight:500 }}>Aucune commande trouvée</td></tr>
                 )}
               </tbody>
             </table>

@@ -6,6 +6,7 @@ import { useAuthStore, useCartStore, useLangStore } from '../store';
 import { formatFCFA, formatDate, getInitials } from '../utils/helpers';
 import { StatusBadge, Loader } from '../components/UI';
 import { t } from '../utils/i18n';
+import { SITE } from '../utils/site';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const NAV_ITEMS = [
@@ -203,7 +204,7 @@ export default function Dashboard() {
               <p style={{ fontSize:14, color:'var(--text-3)', flex:1 }}>
                 {lang==='fr'?'Une question ? Contactez-nous sur WhatsApp !':lang==='en'?'A question? Contact us on WhatsApp!':lang==='de'?'Fragen? Schreiben Sie uns auf WhatsApp!':lang==='es'?'¿Una pregunta? ¡Contáctenos por WhatsApp!':lang==='it'?'Una domanda? Contattateci su WhatsApp!':'Uma dúvida? Fale conosco no WhatsApp!'}
               </p>
-              <a href="https://wa.me/22997000000" target="_blank" rel="noopener noreferrer"
+              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer"
                 style={{ background:'#25D366', color:'#fff', padding:'10px 20px', borderRadius:8, textDecoration:'none', fontFamily:"'Outfit',sans-serif", fontWeight:700, fontSize:14, display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
                 💬 WhatsApp
               </a>

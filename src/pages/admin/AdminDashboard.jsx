@@ -6,7 +6,6 @@ import { formatFCFA, formatDate } from '../../utils/helpers';
 import { StatusBadge, Loader } from '../../components/UI';
 
 const STATUS_FR = { pending:'En attente', confirmed:'Confirmée', processing:'En traitement', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
-const PAYMENT_FR = { full:'Intégral', deposit:'Acompte', monthly:'Mensualités' };
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -29,7 +28,7 @@ export default function AdminDashboard() {
     { icon:'📦', label:'Produits actifs', value:totalProducts || 0, color:'#22C55E', sub:'En catalogue' },
   ];
 
-  const TABLE_COLS = ['N° Commande','Client','Date','Montant','Paiement','Statut',''];
+  const TABLE_COLS = ['N° Commande','Client','Date','Montant','Statut',''];
 
   return (
     <div style={{ padding:'clamp(24px,5vw,48px) clamp(16px,4vw,44px) 60px', minHeight:'100vh', background:'var(--bg)' }}>
@@ -110,11 +109,6 @@ export default function AdminDashboard() {
                   </td>
                   <td style={{ padding:'14px 20px', color:'var(--text-2)', fontSize:13, fontWeight:500 }}>{formatDate(order.createdAt)}</td>
                   <td style={{ padding:'14px 20px', fontWeight:800, color:'var(--text)', fontSize:16, letterSpacing:'-0.01em' }}>{formatFCFA(order.totalPrice)}</td>
-                  <td style={{ padding:'14px 20px' }}>
-                    <span style={{ fontSize:11, background:'var(--bg-card2)', color:'var(--text-2)', padding:'5px 12px', borderRadius:6, fontWeight:700, letterSpacing:'0.04em', border:'1px solid var(--border)' }}>
-                      {PAYMENT_FR[order.paymentType]}
-                    </span>
-                  </td>
                   <td style={{ padding:'14px 20px' }}><StatusBadge status={order.status} /></td>
                   <td style={{ padding:'14px 20px' }}>
                     <Link to={`/admin/orders/${order.id}`} className="btn-gold" style={{ fontSize:12, padding:'10px 18px', letterSpacing:'0.05em' }}>Gérer</Link>

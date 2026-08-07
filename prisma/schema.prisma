@@ -20,12 +20,6 @@ enum Category {
   JOUETS_ADULTES
 }
 
-enum PaymentType {
-  full
-  deposit
-  monthly
-}
-
 enum OrderStatus {
   pending
   confirmed
@@ -84,11 +78,6 @@ model Order {
   customerEmail   String?                       // invité : email
   customerPhone   String?                       // invité : téléphone
   totalPrice      Float
-  paymentType     PaymentType
-  depositAmount   Float?
-  monthlyAmount   Float?
-  monthlyDuration Int?
-  discountAmount  Float?
   status          OrderStatus @default(pending)
   notes           String?     @db.Text
   shippingAddress String?
@@ -124,12 +113,11 @@ model OrderTracking {
 }
 
 model Cart {
-  id          Int         @id @default(autoincrement())
-  userId      Int
-  productId   Int
-  quantity    Int         @default(1)
-  paymentType PaymentType @default(full)
-  createdAt   DateTime    @default(now())
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

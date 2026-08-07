@@ -6,6 +6,7 @@ import { orderAPI } from '../services/api';
 import { formatFCFA, formatDate, timeAgo, STATUS_STEPS } from '../utils/helpers';
 import { StatusBadge, Loader } from '../components/UI';
 import { useLangStore } from '../store';
+import { SITE } from '../utils/site';
 
 const STEP_ICONS = { pending:'📋', confirmed:'✅', processing:'🔧', shipped:'🚚', delivered:'🏠' };
 
@@ -16,15 +17,6 @@ const STATUS_LABELS_ML = {
   es:{ pending:'Pendiente',    confirmed:'Confirmado',  processing:'En proceso',         shipped:'Enviado',  delivered:'Entregado', cancelled:'Cancelado' },
   it:{ pending:'In attesa',    confirmed:'Confermato',  processing:'In elaborazione',    shipped:'Spedito',  delivered:'Consegnato',cancelled:'Annullato' },
   pt:{ pending:'Pendente',     confirmed:'Confirmado',  processing:'Em processamento',   shipped:'Enviado',  delivered:'Entregue',  cancelled:'Cancelado' },
-};
-
-const PAYMENT_ML = {
-  fr:{ full:'Paiement intégral (-5%)',   deposit:'Acompte 25%',   monthly:'Mensualités 60 mois' },
-  en:{ full:'Full payment (-5%)',         deposit:'25% deposit',   monthly:'60 monthly payments' },
-  de:{ full:'Vollzahlung (-5%)',          deposit:'Anzahlung 25%', monthly:'60 Raten' },
-  es:{ full:'Pago completo (-5%)',        deposit:'Señal 25%',     monthly:'60 cuotas mensuales' },
-  it:{ full:'Pagamento completo (-5%)',   deposit:'Acconto 25%',   monthly:'60 rate mensili' },
-  pt:{ full:'Pagamento integral (-5%)',   deposit:'Entrada 25%',   monthly:'60 parcelas mensais' },
 };
 
 export default function Track() {
@@ -39,7 +31,6 @@ export default function Track() {
   const l = lang || 'fr';
 
   const SL = STATUS_LABELS_ML[l] || STATUS_LABELS_ML.fr;
-  const PL = PAYMENT_ML[l] || PAYMENT_ML.fr;
 
   const fetchOrder = async (num) => {
     setLoading(true); setError(''); setOrder(null);
@@ -73,11 +64,8 @@ export default function Track() {
     cancelled: { fr:'Commande annulée',    en:'Order cancelled',   de:'Storniert',             es:'Pedido cancelado',       it:'Ordine annullato',       pt:'Pedido cancelado' },
     cancelSub: { fr:"Contactez-nous pour plus d'informations.", en:'Contact us for more information.', de:'Kontaktieren Sie uns.', es:'Contáctenos para más información.', it:'Contattateci per ulteriori informazioni.', pt:'Contacte-nos para mais informações.' },
     products:  { fr:'Produits commandés', en:'Ordered products',  de:'Bestellte Produkte',   es:'Productos pedidos',      it:'Prodotti ordinati',       pt:'Produtos pedidos' },
-    payment:   { fr:'Récapitulatif paiement', en:'Payment summary', de:'Zahlungsübersicht',   es:'Resumen del pago',       it:'Riepilogo pagamento',    pt:'Resumo do pagamento' },
+    payment:   { fr:'Récapitulatif',          en:'Summary',               de:'Übersicht',                 es:'Resumen',                 it:'Riepilogo',              pt:'Resumo' },
     history:   { fr:'Historique',          en:'History',           de:'Verlauf',               es:'Historial',              it:'Cronologia',             pt:'Histórico' },
-    discount:  { fr:'Remise (-5%)',        en:'Discount (-5%)',    de:'Rabatt (-5%)',          es:'Descuento (-5%)',         it:'Sconto (-5%)',           pt:'Desconto (-5%)' },
-    deposit2:  { fr:'Acompte (25%)',       en:'Deposit (25%)',     de:'Anzahlung (25%)',       es:'Señal (25%)',             it:'Acconto (25%)',          pt:'Entrada (25%)' },
-    monthly:   { fr:'Mensualité ×',        en:'Monthly ×',         de:'Rate ×',                es:'Cuota ×',                it:'Rata ×',                 pt:'Parcela ×' },
     total:     { fr:'Total',               en:'Total',             de:'Gesamt',                es:'Total',                  it:'Totale',                 pt:'Total' },
     progress:  { fr:'Progression',         en:'Progress',          de:'Fortschritt',           es:'Progreso',               it:'Avanzamento',            pt:'Progresso' },
     contact:   { fr:'Nous contacter',      en:'Contact us',        de:'Kontaktieren',          es:'Contáctenos',            it:'Contattateci',           pt:'Contacte-nos' },
@@ -130,7 +118,6 @@ export default function Track() {
               <div style={{ textAlign:'right' }}>
                 <StatusBadge status={order.status} />
                 <p style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize: isMobile ? 24 : 32, color:'var(--text)', marginTop:10, letterSpacing:'-0.02em' }}>{formatFCFA(order.totalPrice)}</p>
-                <p style={{ fontSize:13, color:'var(--text-3)', marginTop:4 }}>{PL[order.paymentType]}</p>
               </div>
             </div>
 
@@ -164,7 +151,7 @@ export default function Track() {
                 <p style={{ fontSize:48, marginBottom:12 }}>❌</p>
                 <p style={{ fontWeight:800, fontSize:20, color:'#EF4444', marginBottom:8 }}>{L.cancelled[l]}</p>
                 <p style={{ fontSize:15, color:'var(--text-3)', marginBottom:20 }}>{L.cancelSub[l]}</p>
-                <a href="https://wa.me/393505308335" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display:'inline-flex', fontSize:14 }}>
+                <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display:'inline-flex', fontSize:14 }}>
                   💬 {L.contact[l]}
                 </a>
               </div>
@@ -192,24 +179,6 @@ export default function Track() {
             <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding: isMobile ? 18 : 28, boxShadow:'var(--shadow-sm)' }}>
               <p style={{ fontSize:11, fontWeight:800, letterSpacing:'0.3em', textTransform:'uppercase', color:'var(--text-3)', marginBottom:18 }}>{L.payment[l]}</p>
               <div style={{ display:'flex', flexDirection:'column', gap:12, fontSize:15 }}>
-                {order.discountAmount > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between' }}>
-                    <span style={{ color:'var(--green)' }}>{L.discount[l]}</span>
-                    <span style={{ color:'var(--green)', fontWeight:700 }}>- {formatFCFA(order.discountAmount)}</span>
-                  </div>
-                )}
-                {order.depositAmount > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between' }}>
-                    <span style={{ color:'var(--text-3)' }}>{L.deposit2[l]}</span>
-                    <span style={{ color:'var(--red)', fontWeight:700 }}>{formatFCFA(order.depositAmount)}</span>
-                  </div>
-                )}
-                {order.monthlyAmount > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between' }}>
-                    <span style={{ color:'var(--text-3)' }}>{L.monthly[l]} {order.monthlyDuration}</span>
-                    <span style={{ color:'var(--red)', fontWeight:700 }}>{formatFCFA(order.monthlyAmount)}/mo</span>
-                  </div>
-                )}
                 <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                   <span style={{ fontWeight:700, color:'var(--text)', fontSize:17 }}>{L.total[l]}</span>

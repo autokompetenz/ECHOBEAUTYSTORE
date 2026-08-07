@@ -65,9 +65,6 @@ export const orderAPI = {
   getAdminDetail: (id)   => api.get(`/orders/${id}`),
   updateStatus:   (id,d) => api.patch(`/orders/${id}`, d),
 };
-export const simAPI = {
-  simulate: (salary) => api.get('/simulation', { params: { salary } }),
-};
 export const adminAPI = {
   stats:   () => api.get('/admin/stats'),
   clients: () => api.get('/admin/clients'),

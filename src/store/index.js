@@ -100,13 +100,13 @@ export const useCartStore = create((set, get) => ({
   },
 
   // Ajoute un produit au panier
-  addItem: async (product, paymentType = 'full') => {
+  addItem: async (product) => {
     const token = localStorage.getItem('ak_token');
 
     if (token) {
       const productId = typeof product === 'object' ? product.id : product;
       try {
-        const { data } = await cartAPI.add({ productId, paymentType });
+        const { data } = await cartAPI.add({ productId });
         set({ cartItems: data.cartItems, cartCount: data.count, total: data.total });
         return data;
       } catch (error) {
@@ -136,7 +136,6 @@ export const useCartStore = create((set, get) => ({
         id: Date.now(),
         productId: productObj.id,
         quantity: 1,
-        paymentType,
         product: productObj,
       }];
     }

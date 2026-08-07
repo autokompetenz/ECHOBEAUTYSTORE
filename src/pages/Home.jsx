@@ -25,16 +25,16 @@ const SERVICES = [
   { icon:'🚚', tag:'RAPIDE',
     title:'Livraison Express',
     desc:`Livraison à Cotonou en 24-48h et partout au Bénin. Suivi en temps réel de votre commande.` },
-  { icon:'💳', tag:'PAIEMENT FLEXIBLE',
-    title:'Financement Facile',
-    desc:`Payez en plusieurs fois : acompte ou mensualités adaptés à votre budget, sans stress.` },
+  { icon:'💳', tag:'PAIEMENT SIMPLE',
+    title:'Paiement Simple',
+    desc:`Paiement par Mobile Money (MTN, Moov), virement bancaire ou à la livraison. Sans frais cachés.` },
 ];
 
 const getPurchaseSteps = () => [
   {
     icon: '🔍', step: '01',
     title: 'Découvrir nos produits',
-    desc: 'Parcourez notre catalogue en ligne. Filtrez par catégorie, marque ou prix. Chaque fiche produit inclut photos HD, description complète et composition.',
+    desc: 'Parcourez notre catalogue en ligne. Filtrez par catégorie ou prix. Chaque fiche produit inclut photos HD, description complète et composition.',
   },
   {
     icon: '🛒', step: '02',

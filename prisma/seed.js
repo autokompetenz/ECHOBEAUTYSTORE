@@ -1,3 +1,4 @@
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const { prisma } = require('../lib/prisma.js');
 const products = require('./catalog.js');

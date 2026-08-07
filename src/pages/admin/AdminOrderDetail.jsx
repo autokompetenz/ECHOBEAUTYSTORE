@@ -6,7 +6,6 @@ import { formatFCFA, formatDate, timeAgo } from '../../utils/helpers';
 import { StatusBadge, Loader } from '../../components/UI';
 
 const STATUS_LABELS = { pending:'En attente', confirmed:'Confirmée', processing:'En traitement', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
-const PAYMENT_LABELS = { full:'Paiement intégral (-5%)', deposit:'Acompte 25%', monthly:'Mensualités 60 mois' };
 
 export default function AdminOrderDetail() {
   const { id } = useParams();
@@ -111,27 +110,6 @@ export default function AdminOrderDetail() {
           <div style={cardStyle}>
             <p style={{ fontSize:11, fontWeight:800, letterSpacing:'0.22em', textTransform:'uppercase', color:'var(--red)', marginBottom:18 }}>Récapitulatif financier</p>
             <div style={{ display:'flex', flexDirection:'column', gap:12, fontSize:15 }}>
-              <div style={{ display:'flex', justifyContent:'space-between' }}>
-                <span style={{ color:'var(--text-3)' }}>Mode</span>
-                <span style={{ color:'var(--text)', fontWeight:600 }}>{PAYMENT_LABELS[order.paymentType]}</span>
-              </div>
-              {order.discountAmount && (
-                <div style={{ display:'flex', justifyContent:'space-between', color:'var(--green)' }}>
-                  <span>Remise (-5%)</span><span>- {formatFCFA(order.discountAmount)}</span>
-                </div>
-              )}
-              {order.depositAmount && (
-                <div style={{ display:'flex', justifyContent:'space-between' }}>
-                  <span style={{ color:'var(--text-3)' }}>Acompte (25%)</span>
-                  <span style={{ color:'var(--red)', fontWeight:700 }}>{formatFCFA(order.depositAmount)}</span>
-                </div>
-              )}
-              {order.monthlyAmount && (
-                <div style={{ display:'flex', justifyContent:'space-between' }}>
-                  <span style={{ color:'var(--text-3)' }}>Mensualité × {order.monthlyDuration}</span>
-                  <span style={{ color:'var(--red)', fontWeight:700 }}>{formatFCFA(order.monthlyAmount)}/mo</span>
-                </div>
-              )}
               <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                 <span style={{ fontWeight:700, color:'var(--text)' }}>Total</span>

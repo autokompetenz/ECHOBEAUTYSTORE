@@ -82,21 +82,6 @@ function generateOrderNumber() {
   return `CMD-${year}${month}${day}-${random}`;
 }
 
-function calculateOrderTotals(subtotal, paymentType) {
-  const discountAmount = paymentType === 'full' ? subtotal * 0.05 : 0;
-  const discountedTotal = subtotal - discountAmount;
-  if (paymentType === 'deposit') {
-    return { totalPrice: discountedTotal, discountAmount, depositAmount: discountedTotal * 0.25, monthlyAmount: null, monthlyDuration: null };
-  } else if (paymentType === 'monthly') {
-    const monthlyDuration = 60;
-    const r = 0.06 / 12;
-    const monthlyAmount = Math.round((discountedTotal * r * Math.pow(1 + r, monthlyDuration)) / (Math.pow(1 + r, monthlyDuration) - 1));
-    return { totalPrice: discountedTotal, discountAmount, depositAmount: null, monthlyAmount, monthlyDuration };
-  } else {
-    return { totalPrice: discountedTotal, discountAmount, depositAmount: null, monthlyAmount: null, monthlyDuration: null };
-  }
-}
-
 async function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'Token manquant' });
@@ -341,7 +326,7 @@ app.get('/api/cart', authenticateToken, async (req, res) => {
     const items = await prisma.cart.findMany({
       where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' },
     });
-    const cartItems = items.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, paymentType: item.paymentType, product: item.product }));
+    const cartItems = items.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
     const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     res.json({ cartItems, total, count: cartItems.length });
   } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
@@ -356,7 +341,7 @@ app.get('/api/cart/count', authenticateToken, async (req, res) => {
 
 app.post('/api/cart', authenticateToken, async (req, res) => {
   try {
-    const { productId, quantity = 1, paymentType = 'full' } = req.body;
+    const { productId, quantity = 1 } = req.body;
     const product = await prisma.product.findUnique({ where: { id: parseInt(productId) } });
     if (!product || !product.isActive) return res.status(404).json({ error: 'Produit non trouvé' });
     if (product.stock < quantity) return res.status(400).json({ error: 'Stock insuffisant' });
@@ -366,13 +351,13 @@ app.post('/api/cart', authenticateToken, async (req, res) => {
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
       if (product.stock < newQuantity) return res.status(400).json({ error: 'Stock insuffisant' });
-      await prisma.cart.update({ where: { id: existingItem.id }, data: { quantity: newQuantity, paymentType } });
+      await prisma.cart.update({ where: { id: existingItem.id }, data: { quantity: newQuantity } });
     } else {
-      await prisma.cart.create({ data: { userId: req.user.id, productId: parseInt(productId), quantity, paymentType } });
+      await prisma.cart.create({ data: { userId: req.user.id, productId: parseInt(productId), quantity } });
     }
 
     const updatedCart = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' } });
-    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, paymentType: item.paymentType, product: item.product }));
+    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
     const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     res.status(existingItem ? 200 : 201).json({ cartItems, total, count: cartItems.length });
   } catch (e) {
@@ -383,13 +368,13 @@ app.post('/api/cart', authenticateToken, async (req, res) => {
 
 app.put('/api/cart/:productId', authenticateToken, async (req, res) => {
   try {
-    const { quantity, paymentType } = req.body;
+    const { quantity } = req.body;
     const cartItem = await prisma.cart.findFirst({ where: { userId: req.user.id, productId: parseInt(req.params.productId) }, include: { product: true } });
     if (!cartItem) return res.status(404).json({ error: 'Article non trouvé dans le panier' });
     if (quantity > cartItem.product.stock) return res.status(400).json({ error: 'Stock insuffisant' });
-    await prisma.cart.update({ where: { id: cartItem.id }, data: { quantity, paymentType } });
+    await prisma.cart.update({ where: { id: cartItem.id }, data: { quantity } });
     const updatedCart = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' } });
-    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, paymentType: item.paymentType, product: item.product }));
+    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
     const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
     res.json({ cartItems, total, count: cartItems.length });
   } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
@@ -411,7 +396,7 @@ app.delete('/api/cart/:productId', authenticateToken, async (req, res) => {
 
 app.post('/api/orders/guest', async (req, res) => {
   try {
-    const { customerName, customerEmail, customerPhone, shippingAddress, notes, items, paymentType = 'full' } = req.body;
+    const { customerName, customerEmail, customerPhone, shippingAddress, notes, items } = req.body;
 
     if (!customerName?.trim()) return res.status(400).json({ error: 'Nom requis' });
     if (!customerEmail?.trim()) return res.status(400).json({ error: 'Email requis' });
@@ -434,8 +419,6 @@ app.post('/api/orders/guest', async (req, res) => {
       return s + (product?.price || 0) * i.quantity;
     }, 0);
 
-    const totals = calculateOrderTotals(subtotal, paymentType);
-
     // Générer numéro de commande unique
     let orderNumber, exists = true;
     while (exists) {
@@ -451,10 +434,9 @@ app.post('/api/orders/guest', async (req, res) => {
           customerName,
           customerEmail,
           customerPhone,
-          paymentType,
           shippingAddress,
           notes: notes || null,
-          ...totals,
+          totalPrice: subtotal,
         },
       });
 
@@ -505,7 +487,6 @@ app.post('/api/orders/guest', async (req, res) => {
           const product = products.find(p => p.id === parseInt(i.productId));
           return { product, unitPrice: i.unitPrice, quantity: i.quantity };
         }),
-        paymentType,
       });
     } catch (emailErr) {
       console.error('Admin order notification error:', emailErr);
@@ -521,8 +502,7 @@ app.post('/api/orders/guest', async (req, res) => {
 
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const { paymentType, shippingAddress, notes } = req.body;
-    if (!['full','deposit','monthly'].includes(paymentType)) return res.status(400).json({ error: 'Type de paiement invalide' });
+    const { shippingAddress, notes } = req.body;
     if (!shippingAddress?.trim()) return res.status(400).json({ error: 'Adresse de livraison requise' });
 
     const cartItems = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true } });
@@ -533,7 +513,6 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     }
 
     const subtotal = cartItems.reduce((s, i) => s + i.product.price * i.quantity, 0);
-    const totals = calculateOrderTotals(subtotal, paymentType);
 
     let orderNumber, exists = true;
     while (exists) {
@@ -542,7 +521,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     }
 
     const order = await prisma.$transaction(async (tx) => {
-      const newOrder = await tx.order.create({ data: { orderNumber, userId: req.user.id, paymentType, shippingAddress, notes: notes || null, ...totals } });
+      const newOrder = await tx.order.create({ data: { orderNumber, userId: req.user.id, shippingAddress, notes: notes || null, totalPrice: subtotal } });
       await tx.orderItem.createMany({ data: cartItems.map(i => ({ orderId: newOrder.id, productId: i.productId, quantity: i.quantity, unitPrice: i.product.price })) });
       for (const item of cartItems) { await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } }); }
       await tx.orderTracking.create({ data: { orderId: newOrder.id, status: 'pending', comment: 'Commande reçue' } });
@@ -570,7 +549,6 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         shippingAddress,
         orderNumber: order.orderNumber, order,
         items: cartItems.map(i => ({ product: i.product, unitPrice: i.product.price, quantity: i.quantity })),
-        paymentType,
       });
     } catch (emailErr) {
       console.error('Admin order notification error:', emailErr);
@@ -735,22 +713,6 @@ app.get('/api/admin/clients', authenticateToken, requireAdmin, async (req, res) 
     ]);
     res.json({ clients, total, page: parseInt(page), limit: take });
   } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
-});
-
-// ─── Simulation ───────────────────────────────────────────────────────────────
-
-app.get('/api/simulation', async (req, res) => {
-  try {
-    const salary = parseFloat(req.query.salary);
-    if (!salary || salary <= 0) return res.status(400).json({ error: 'Salaire invalide' });
-    const maxMonthly = salary * 0.3;
-    const r = 0.06 / 12;
-    const months = 60;
-    const factor = (Math.pow(1 + r, months) - 1) / (r * Math.pow(1 + r, months));
-    const maxAffordablePrice = maxMonthly * factor;
-    const products = await prisma.product.findMany({ where: { isActive: true, price: { lte: maxAffordablePrice } }, orderBy: { price: 'desc' } });
-    res.json({ count: products.length, salary, maxMonthly, products });
-  } catch (e) { console.error('Simulation error:', e); res.status(500).json({ error: 'Erreur serveur' }); }
 });
 
 // ─── Error handlers ───────────────────────────────────────────────────────────

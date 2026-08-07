@@ -72,5 +72,5 @@ npm run seed
 
 ## Contact
 - **Email** : contact@echobeautystore.bj
-- **WhatsApp** : +229 97 00 00 00
+- **WhatsApp** : +229 45 56 30 69
 - **Adresse** : Cotonou, Bénin

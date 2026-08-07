@@ -3,7 +3,6 @@
 
 CREATE TYPE "Role"         AS ENUM ('CLIENT', 'ADMIN');
 CREATE TYPE "Category"     AS ENUM ('REMISE_EN_FORME', 'INSTRUMENTS_MASSAGE', 'PRODUITS_AMAIGRISSANTS', 'JOUETS_ADULTES');
-CREATE TYPE "PaymentType"  AS ENUM ('full', 'deposit', 'monthly');
 CREATE TYPE "OrderStatus"  AS ENUM ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled');
 
 CREATE TABLE "User" (
@@ -48,11 +47,6 @@ CREATE TABLE "Order" (
   "customerEmail"   TEXT,                                      -- invité : email
   "customerPhone"   TEXT,                                      -- invité : téléphone
   "totalPrice"      FLOAT NOT NULL,
-  "paymentType"     "PaymentType" NOT NULL,
-  "depositAmount"   FLOAT,
-  "monthlyAmount"   FLOAT,
-  "monthlyDuration" INT,
-  "discountAmount"  FLOAT,
   "status"          "OrderStatus" DEFAULT 'pending',
   "notes"           TEXT,
   "shippingAddress" TEXT,
@@ -82,7 +76,6 @@ CREATE TABLE "Cart" (
   "userId"      INT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
   "productId"   INT NOT NULL REFERENCES "Product"("id"),
   "quantity"    INT DEFAULT 1,
-  "paymentType" "PaymentType" DEFAULT 'full',
   "createdAt"   TIMESTAMP DEFAULT NOW(),
   UNIQUE("userId", "productId")
 );
@@ -98,3 +91,32 @@ CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
   "started_at"          TIMESTAMP DEFAULT NOW(),
   "applied_steps_count" INT DEFAULT 0
 );
+
+-- ─── Storage : bucket "products" (images produits) ────────────────────────────
+-- Nécessaire pour l'upload des images depuis le panneau admin.
+-- Le bucket DOIT être public pour que les URLs des images soient accessibles.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('products', 'products', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Lecture publique des images (frontend + emails)
+DROP POLICY IF EXISTS "Public read products" ON storage.objects;
+CREATE POLICY "Public read products"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'products');
+
+-- Upload / modification : réservé aux utilisateurs connectés (admin)
+DROP POLICY IF EXISTS "Authenticated upload products" ON storage.objects;
+CREATE POLICY "Authenticated upload products"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'products');
+
+DROP POLICY IF EXISTS "Authenticated update products" ON storage.objects;
+CREATE POLICY "Authenticated update products"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'products');
+
+DROP POLICY IF EXISTS "Authenticated delete products" ON storage.objects;
+CREATE POLICY "Authenticated delete products"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'products');

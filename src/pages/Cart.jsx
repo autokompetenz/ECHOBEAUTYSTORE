@@ -162,7 +162,6 @@ export default function Cart() {
         // Commande invité
         const formData = new FormData(e.target);
         const orderData = {
-          paymentType: 'full',
           shippingAddress,
           notes,
           customerName:  formData.get('fullName'),
@@ -175,7 +174,7 @@ export default function Cart() {
         navigate(`/order-confirm/${data.orderNumber}`);
       } else {
         // Commande utilisateur connecté (route existante)
-        const { data } = await orderAPI.create({ paymentType: 'full', shippingAddress, notes });
+        const { data } = await orderAPI.create({ shippingAddress, notes });
         fetchCart();
         navigate(`/order-confirm/${data.orderNumber}`);
       }
