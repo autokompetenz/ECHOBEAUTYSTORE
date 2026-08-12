@@ -10,7 +10,6 @@ import ClientBottomNav, { useClientBottomNavPadding } from './components/ClientB
 import Home         from './pages/Home';
 import Catalog      from './pages/Catalog';
 import ProductDetails from './pages/ProductDetails';
-import Cart         from './pages/Cart';
 import Track        from './pages/Track';
 import OrderConfirm from './pages/OrderConfirm';
 import Orders       from './pages/Orders';
@@ -64,7 +63,6 @@ export default function App() {
         <Route path="/"         element={<MainLayout><Home /></MainLayout>} />
         <Route path="/catalog"  element={<MainLayout><Catalog /></MainLayout>} />
         <Route path="/products/:id" element={<MainLayout><ProductDetails /></MainLayout>} />
-        <Route path="/cart"     element={<MainLayout><Cart /></MainLayout>} />
         <Route path="/track"    element={<MainLayout><Track /></MainLayout>} />
         <Route path="/track/:orderNumber" element={<MainLayout><Track /></MainLayout>} />
         <Route path="/order-confirm/:orderNumber" element={<MainLayout><OrderConfirm /></MainLayout>} />

@@ -1,5 +1,14 @@
 import { SITE } from './site';
 
+// Build a WhatsApp link pre-filled with a single product order (commande directe).
+export function buildWhatsAppProductOrder(product, quantity = 1) {
+  const qty = Math.max(1, Math.min(Number(quantity) || 1, product.stock || 1));
+  return buildWhatsAppOrderLink({
+    items: [{ product: { id: product.id, name: product.name }, quantity: qty, unitPrice: product.price }],
+    totalPrice: product.price * qty,
+  });
+}
+
 // Build a WhatsApp link pre-filled with the order details and a link to each product.
 export function buildWhatsAppOrderLink(order) {
   const base = window.location.origin;

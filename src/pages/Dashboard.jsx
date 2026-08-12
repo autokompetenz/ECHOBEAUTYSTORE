@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { orderAPI } from '../services/api';
-import { useAuthStore, useCartStore, useLangStore } from '../store';
+import { useAuthStore, useLangStore } from '../store';
 import { formatFCFA, formatDate, getInitials } from '../utils/helpers';
 import { StatusBadge, Loader } from '../components/UI';
 import { t } from '../utils/i18n';
@@ -12,14 +12,12 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 const NAV_ITEMS = [
   { to:'/dashboard',  icon:'⊞', key:'nav_dashboard' },
   { to:'/orders',     icon:'📦', key:'nav_orders' },
-  { to:'/cart',       icon:'🛒', key:'nav_cart' },
   { to:'/profile',    icon:'👤', key:'nav_profile' },
   { to:'/track', icon:'📍', key:'nav_track' },
 ];
 
 export default function Dashboard() {
   const { user } = useAuthStore();
-  const { cartCount } = useCartStore();
   const { lang } = useLangStore();
   const { isMobile, isTablet } = useBreakpoint();
   const [orders, setOrders]   = useState([]);
@@ -56,15 +54,12 @@ export default function Dashboard() {
         <h2 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:17, color:'var(--text)', marginBottom:3 }}>{user?.firstName} {user?.lastName}</h2>
         <p style={{ fontSize:12, color:'var(--text-3)' }}>{user?.email}</p>
         <div style={{ height:1, background:'var(--border)', margin:'14px 0' }} />
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-          {[{ label:t('nav_orders',l), value:orders.length }, { label:t('nav_cart',l), value:cartCount }].map(({label,value})=>(
-            <div key={label} style={{ background:'var(--bg-card)', borderRadius:8, padding:'10px 8px', boxShadow:'var(--shadow-sm)' }}>
-              <div style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize:24, color:'var(--red)' }}>{value}</div>
-              <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2, fontWeight:600 }}>{label}</div>
-            </div>
-          ))}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:8 }}>
+          <div style={{ background:'var(--bg-card)', borderRadius:8, padding:'10px 8px', boxShadow:'var(--shadow-sm)', textAlign:'center' }}>
+            <div style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize:24, color:'var(--red)' }}>{orders.length}</div>
+            <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2, fontWeight:600 }}>{t('nav_orders',l)}</div>
+          </div>
         </div>
-        {null}
       </div>
 
       {/* Navigation */}
@@ -130,10 +125,9 @@ export default function Dashboard() {
             </div>
 
             {/* Stats */}
-            <div style={{ display:'grid', gridTemplateColumns:`repeat(${isMobile?2:3},1fr)`, gap: isMobile ? 10 : 14, marginBottom:24 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap: isMobile ? 10 : 14, marginBottom:24 }}>
               {[
                 { icon:'📦', label:t('nav_orders',l), value:orders.length, link:'/orders' },
-                { icon:'🛒', label:t('nav_cart',l), value:cartCount, link:'/cart' },
                 { icon:'📍', label:t('nav_track',l), value:'→', link:'/track' },
               ].map(({ icon, label, value, link }) => (
                 <Link key={label} to={link} style={{ textDecoration:'none', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, padding: isMobile ? '14px 12px' : '20px 18px', boxShadow:'var(--shadow-sm)', transition:'all 0.25s var(--ease)', display:'block' }}

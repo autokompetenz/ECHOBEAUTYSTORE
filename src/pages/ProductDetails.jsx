@@ -3,8 +3,8 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { productAPI } from '../services/api';
-import { useCartStore, useToastStore, useLangStore, useThemeStore } from '../store';
-import { formatFCFA } from '../utils/helpers';
+import { useToastStore, useLangStore, useThemeStore } from '../store';
+import { formatFCFA, buildWhatsAppProductOrder } from '../utils/helpers';
 import { Loader } from '../components/UI';
 import ProductCard from '../components/ProductCard';
 import { t } from '../utils/i18n';
@@ -31,7 +31,6 @@ const IMAGE_FIELDS = [
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCartStore();
   const { addToast } = useToastStore();
   const { lang } = useLangStore();
   const { theme } = useThemeStore();
@@ -42,7 +41,7 @@ export default function ProductDetails() {
   const [similarProducts, setSimilarProducts] = useState([]);
   const [similarLoading, setSimilarLoading] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
-  const [adding, setAdding] = useState(false);
+  const [qty, setQty] = useState(1);
 
   const SL = SPEC_LABELS[lang] || SPEC_LABELS.fr;
   const { isMobile } = useBreakpoint();
@@ -92,21 +91,15 @@ export default function ProductDetails() {
       .finally(() => setSimilarLoading(false));
   }, [product?.id, product?.category]);
 
-  const handleAddToCart = async () => {
-    try {
-      setAdding(true);
-      await addItem(product, 'full');
-      addToast(
-        `${product.name} ${
-          lang === 'fr' ? 'ajouté au panier' :
-          lang === 'en' ? 'added to cart' :
-          lang === 'de' ? 'zum Warenkorb hinzugefügt' :
-          'أضيف إلى السلة'
-        }`, 'success'
-      );
-    } catch (err) {
-      addToast(err.response?.data?.error || 'Erreur', 'error');
-    } finally { setAdding(false); }
+  const handleOrder = () => {
+    const url = buildWhatsAppProductOrder(product, qty);
+    window.open(url, '_blank');
+    addToast(
+      lang === 'fr' ? 'Redirection vers WhatsApp…' :
+      lang === 'en' ? 'Redirecting to WhatsApp…' :
+      lang === 'de' ? 'Weiterleitung zu WhatsApp…' :
+      'جارٍ التحويل إلى واتساب…', 'success'
+    );
   };
 
   if (loading) return (
@@ -120,7 +113,6 @@ export default function ProductDetails() {
 
   const breadcrumbs   = { fr:'Accueil', en:'Home', de:'Startseite', ar:'الرئيسية' };
   const catalogBc     = { fr:'Catalogue', en:'Catalogue', de:'Katalog', ar:'الكتالوج' };
-  const addBtn        = { fr:'Ajouter au panier', en:'Add to Cart', de:'In den Warenkorb', ar:'أضف إلى السلة' };
 
   return (
     <div style={{ minHeight: '100vh', background: C.bg, paddingTop: 76 }}>
@@ -286,25 +278,75 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* Add to cart */}
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock === 0 || adding}
-              style={{
-                width: '100%', padding: isMobile ? '18px' : '20px', borderRadius: 12,
-                fontFamily: "'Outfit',sans-serif", fontSize: isMobile?14:15, fontWeight:800,
-                letterSpacing: '0.1em', textTransform: 'uppercase', border: 'none',
-                cursor: product.stock===0 ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease',
-                background: product.stock===0 ? C.disabledBg : adding ? 'rgba(200,16,46,0.7)' : 'linear-gradient(135deg,#C8102E,#9B0B22)',
-                color: product.stock===0 ? C.disabledText : '#fff',
-                boxShadow: product.stock>0 && !adding ? '0 4px 16px rgba(200,16,46,0.3)' : 'none',
-              }}
-              onMouseOver={e => { if (product.stock>0&&!adding) { e.currentTarget.style.background='linear-gradient(135deg,#9B0B22,#7A0818)'; e.currentTarget.style.transform='scale(1.02)'; }}}
-              onMouseOut={e => { if (product.stock>0&&!adding) { e.currentTarget.style.background='linear-gradient(135deg,#C8102E,#9B0B22)'; e.currentTarget.style.transform='scale(1)'; }}}
-            >
-              {adding ? '...' : product.stock===0 ? t('out_of_stock',lang) : '🛒 '+(addBtn[lang]||addBtn.fr)}
-            </button>
+            {/* Commande directe : quantité + Commander sur WhatsApp */}
+            <div style={{ display:'flex', gap:12, alignItems:'stretch' }}>
+              {/* Quantité */}
+              <div style={{
+                display:'flex', alignItems:'center',
+                background:C.card, border:`1px solid ${C.border}`,
+                borderRadius:12, overflow:'hidden', flexShrink:0,
+              }}>
+                <button
+                  onClick={() => setQty(q => Math.max(1, q - 1))}
+                  disabled={product.stock===0 || qty<=1}
+                  style={{
+                    width: isMobile ? 46 : 52, height: isMobile ? 50 : 54,
+                    border:'none', background:'transparent', color:C.text,
+                    fontSize:22, fontWeight:700, cursor: product.stock===0||qty<=1 ? 'not-allowed' : 'pointer',
+                    opacity: product.stock===0||qty<=1 ? 0.3 : 1, transition:'all 0.2s',
+                    fontFamily:"'Outfit',sans-serif",
+                  }}
+                  onMouseOver={e => { if(qty>1&&product.stock>0){ e.currentTarget.style.background=C.card2; } }}
+                  onMouseOut={e => { e.currentTarget.style.background='transparent'; }}
+                >−</button>
+                <span style={{
+                  width: isMobile ? 40 : 48, textAlign:'center',
+                  fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize:20, color:C.text,
+                  borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`,
+                  lineHeight: isMobile ? '50px' : '54px',
+                }}>{qty}</span>
+                <button
+                  onClick={() => setQty(q => Math.min(product.stock, q + 1))}
+                  disabled={product.stock===0 || qty>=product.stock}
+                  style={{
+                    width: isMobile ? 46 : 52, height: isMobile ? 50 : 54,
+                    border:'none', background:'transparent', color:C.text,
+                    fontSize:20, fontWeight:700, cursor: product.stock===0||qty>=product.stock ? 'not-allowed' : 'pointer',
+                    opacity: product.stock===0||qty>=product.stock ? 0.3 : 1, transition:'all 0.2s',
+                    fontFamily:"'Outfit',sans-serif",
+                  }}
+                  onMouseOver={e => { if(qty<product.stock&&product.stock>0){ e.currentTarget.style.background=C.card2; } }}
+                  onMouseOut={e => { e.currentTarget.style.background='transparent'; }}
+                >+</button>
+              </div>
+
+              {/* Commander */}
+              <button
+                onClick={handleOrder}
+                disabled={product.stock === 0}
+                style={{
+                  flex:1, borderRadius:12, padding: isMobile ? '0 18px' : '0 24px',
+                  fontFamily:"'Outfit',sans-serif", fontSize: isMobile?14:15, fontWeight:800,
+                  letterSpacing:'0.08em', textTransform:'uppercase', border:'none',
+                  cursor: product.stock===0 ? 'not-allowed' : 'pointer',
+                  transition:'all 0.3s ease',
+                  background: product.stock===0 ? C.disabledBg : 'linear-gradient(135deg,#25D366,#128C7E)',
+                  color: product.stock===0 ? C.disabledText : '#fff',
+                  boxShadow: product.stock>0 ? '0 4px 16px rgba(37,211,102,0.35)' : 'none',
+                }}
+                onMouseOver={e => { if (product.stock>0) { e.currentTarget.style.background='linear-gradient(135deg,#128C7E,#075E54)'; e.currentTarget.style.transform='scale(1.02)'; }}}
+                onMouseOut={e => { if (product.stock>0) { e.currentTarget.style.background='linear-gradient(135deg,#25D366,#128C7E)'; e.currentTarget.style.transform='scale(1)'; }}}
+              >
+                {product.stock===0 ? t('out_of_stock',lang) : '💬 '+(lang==='fr'?'Commander':lang==='en'?'Order now':lang==='de'?'Jetzt bestellen':'اطلب الآن')}
+              </button>
+            </div>
+            {product.stock > 0 && (
+              <p style={{ marginTop:12, fontSize:13, color:C.text3, textAlign:'center' }}>
+                {lang==='fr' ? `Commande directe sur WhatsApp — ${qty} × ${formatFCFA(product.price)} = ${formatFCFA(product.price * qty)}` :
+                lang==='en' ? `Direct WhatsApp order — ${qty} × ${formatFCFA(product.price)} = ${formatFCFA(product.price * qty)}` :
+                `WhatsApp-Bestellung — ${qty} × ${formatFCFA(product.price)} = ${formatFCFA(product.price * qty)}`}
+              </p>
+            )}
           </div>
         </div>
 
@@ -325,51 +367,6 @@ export default function ProductDetails() {
             <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900, fontSize: isMobile ? 28 : 42, color: C.text, letterSpacing: '-0.02em', marginTop: 8 }}>
               {lang === 'fr' ? 'Protection adaptée à vos besoins' : lang === 'en' ? 'Protection tailored to your needs' : lang === 'de' ? 'Schutz maßgeschneidert für Ihre Bedürfnisse' : 'حماية مخصصة لاحتياجاتك'}
             </h2>
-          </div>
-
-          {/* Main warranty card */}
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: isMobile ? 24 : 32, marginBottom: 24, boxShadow: C.shadow }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 12, background: 'linear-gradient(135deg,rgba(200,16,46,0.15),rgba(200,16,46,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
-                🛡️
-              </div>
-              <div>
-                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: isMobile ? 18 : 22, color: C.text, marginBottom: 4 }}>
-                  {lang === 'fr' ? 'Satisfait ou remboursé' : lang === 'en' ? 'Satisfied or refunded' : lang === 'de' ? 'Zufrieden oder Geld zurück' : 'راضٍ أو استرداد أموالك'}
-                </h3>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(200,16,46,0.1)', border: '1px solid rgba(200,16,46,0.25)', padding: '4px 12px', borderRadius: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#C8102E' }}>
-                    {lang === 'fr' ? '✓ Inclus avec chaque commande' : lang === 'en' ? '✓ Included with every order' : lang === 'de' ? '✓ In jeder Bestellung enthalten' : '✓ مشمول مع كل طلب'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
-              {[
-                { text: lang === 'fr' ? 'Retour sous 14 jours' : lang === 'en' ? '14-day return' : lang === 'de' ? '14 Tage Rückgabe' : 'إرجاع خلال 14 يومًا', icon: '📅' },
-                { text: lang === 'fr' ? 'Produits authentiques' : lang === 'en' ? 'Authentic products' : lang === 'de' ? 'Authentische Produkte' : 'منتجات أصلية', icon: '✨' },
-                { text: lang === 'fr' ? 'Certifiés d\'origine' : lang === 'en' ? 'Certified origin' : lang === 'de' ? 'Zertifizierte Herkunft' : 'شهادة المنشأ', icon: '🏷️' },
-                { text: lang === 'fr' ? 'Produits scellés' : lang === 'en' ? 'Sealed products' : lang === 'de' ? 'Versiegelte Produkte' : 'منتجات مختومة', icon: '📋' },
-              ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: C.card2, borderRadius: 10 }}>
-                  <span style={{ fontSize: 20 }}>{item.icon}</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: C.text2 }}>{item.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Warranty badge */}
-            <div style={{ background: isDark ? 'rgba(200,16,46,0.1)' : 'rgba(200,16,46,0.08)', border: '1px solid rgba(200,16,46,0.25)', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C8102E' }}>
-                  {lang === 'fr' ? 'Satisfait ou remboursé' : lang === 'en' ? 'Satisfied or refunded' : lang === 'de' ? 'Zufrieden oder Geld zurück' : 'راضٍ أو استرداد أموالك'}
-                </span>
-              </div>
-              <p style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: C.text }}>
-                {lang === 'fr' ? `${product.name} remboursé sous 14 jours si non satisfait` : lang === 'en' ? `${product.name} refunded within 14 days if not satisfied` : lang === 'de' ? `${product.name} innerhalb von 14 Tagen rückzahlbar` : `${product.name} يتم استرداد أموالك خلال 14 يومًا إذا لم تكن راضيًا`}
-              </p>
-            </div>
           </div>
 
           {/* Coverage grid */}
@@ -405,7 +402,6 @@ export default function ProductDetails() {
                 { text: lang === 'fr' ? 'Livraison express 24-48h' : lang === 'en' ? 'Express 24-48h delivery' : lang === 'de' ? 'Express 24-48h Lieferung' : 'توصيل سريع 24-48 ساعة', icon: '🚚' },
                 { text: lang === 'fr' ? 'Suivi en temps réel' : lang === 'en' ? 'Real-time tracking' : lang === 'de' ? 'Echtzeitverfolgung' : 'تتبع في الوقت الفعلي', icon: '📍' },
                 { text: lang === 'fr' ? 'Emballage discret' : lang === 'en' ? 'Discreet packaging' : lang === 'de' ? 'Diskrete Verpackung' : 'تغليف محتشم', icon: '📦' },
-                { text: lang === 'fr' ? 'Retour gratuit sous 14 jours' : lang === 'en' ? 'Free 14-day returns' : lang === 'de' ? 'Kostenlose 14-Tage-Rückgabe' : 'إرجاع مجاني خلال 14 يومًا', icon: '🔄' },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: C.card2, borderRadius: 10, border: '1px solid transparent', transition: 'all 0.2s' }}
                   onMouseOver={e => { e.currentTarget.style.borderColor='rgba(200,16,46,0.3)'; e.currentTarget.style.transform='translateY(-2px)'; }}
@@ -577,7 +573,7 @@ export default function ProductDetails() {
               <span style={{ fontSize: 48 }}>✓</span>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C8102E' }}>
-                  {lang === 'fr' ? 'Certifié PUNTO COSMETICO SL' : lang === 'en' ? 'Certified PUNTO COSMETICO SL' : lang === 'de' ? 'Zertifiziert PUNTO COSMETICO SL' : 'معتمد من PUNTO COSMETICO SL'}
+                  {lang === 'fr' ? 'Certifié Echo Beauty Store' : lang === 'en' ? 'Certified Echo Beauty Store' : lang === 'de' ? 'Zertifiziert Echo Beauty Store' : 'معتمد من Echo Beauty Store'}
                 </div>
                 <p style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: C.text, marginTop: 4 }}>
                   {lang === 'fr' ? 'Ce produit a validé notre contrôle qualité complet.' : lang === 'en' ? 'This product has passed our complete quality control.' : lang === 'de' ? 'Dieses Produkt hat unsere vollständige Qualitätskontrolle bestanden.' : 'اجتاز هذا المنتج فحص الجودة الكامل لدينا.'}

@@ -37,9 +37,9 @@ const getPurchaseSteps = () => [
     desc: 'Parcourez notre catalogue en ligne. Filtrez par catégorie ou prix. Chaque fiche produit inclut photos HD, description complète et composition.',
   },
   {
-    icon: '🛒', step: '02',
-    title: 'Ajouter au panier',
-    desc: 'Sélectionnez les produits de votre choix et ajoutez-les à votre panier. Choisissez vos quantités et bénéficiez des remises volume.',
+    icon: '💬', step: '02',
+    title: 'Commander sur WhatsApp',
+    desc: 'Choisissez votre quantité et cliquez sur "Commander". Le message est pré-rempli sur WhatsApp : ajoutez simplement votre nom et votre adresse de livraison pour confirmer.',
   },
   {
     icon: '💳', step: '03',
@@ -75,10 +75,6 @@ const getFAQ = () => [
   {
     q: 'Proposez-vous des prix de gros ?',
     a: 'Oui. Nous proposons des tarifs préférentiels pour les commandes en volume. Contactez-nous via WhatsApp ou email pour recevoir nos conditions tarifaires professionnelles (revendeurs, salons de beauté, boutiques).',
-  },
-  {
-    q: 'Comment puis-je retourner un produit ?',
-    a: "Si vous n'êtes pas satisfait, contactez-nous dans les 14 jours suivant la réception. Notre équipe vous guidera pour le retour. Les produits doivent être non utilisés et dans leur emballage d'origine. Le remboursement est effectué sous 5 à 7 jours ouvrés.",
   },
   {
     q: 'Vos produits sont-ils authentiques ?',

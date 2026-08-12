@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
-import { useAuthStore, useCartStore, useToastStore, useLangStore } from '../store';
+import { useAuthStore, useToastStore, useLangStore } from '../store';
 import { t } from '../utils/i18n';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function Login() {
   const { login } = useAuthStore();
-  const { fetchCart } = useCartStore();
   const { addToast } = useToastStore();
   const { lang } = useLangStore();
   const { isMobile } = useBreakpoint();
@@ -22,7 +21,6 @@ export default function Login() {
       setLoading(true);
       const { data } = await authAPI.login({ pin });
       login(data.user, data.token);
-      await fetchCart();
       addToast(`${t('welcome_back', l)} ${data.user.firstName} !`, 'success');
       navigate(data.user.role === 'ADMIN' ? '/admin' : '/dashboard');
     } catch (err) {

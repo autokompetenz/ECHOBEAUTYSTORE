@@ -54,9 +54,7 @@ Zone de livraison : Cotonou (24-48h) et tout le Bénin.</p>
 <p>Paiement par Mobile Money (MTN, Moov), virement bancaire ou à la livraison. Aucun frais caché.</p>
 <h2>Article 4 — Livraison</h2>
 <p>Livraison à Cotonou sous 24-48h et dans les autres villes du Bénin sous 2 à 5 jours ouvrés. Suivi de commande disponible en temps réel.</p>
-<h2>Article 5 — Rétractation</h2>
-<p>Vous disposez de 14 jours à compter de la réception pour retourner un produit non utilisé, dans son emballage d'origine.</p>
-<h2>Article 6 — Droit applicable</h2>
+<h2>Article 5 — Droit applicable</h2>
 <p>Les présentes CGV sont soumises au droit béninois. Juridiction compétente : ${SITE.city}, Bénin.</p>`,
   },
 

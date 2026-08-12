@@ -50,14 +50,7 @@ export const productAPI = {
   toggle:        (id)   => api.patch(`/products/${id}/toggle`),
   remove:        (id)   => api.delete(`/products/${id}`),
 };
-export const cartAPI = {
-  get:    ()      => api.get('/cart'),
-  count:  ()      => api.get('/cart/count'),
-  add:    (d)     => api.post('/cart', d),
-  remove: (productId) => api.delete(`/cart/${productId}`),
-};
 export const orderAPI = {
-  create:         (d)    => api.post('/orders', d),
   getMy:          ()     => api.get('/orders/my'),
   getByNumber:    (num)  => api.get(`/orders/${num}`),
   track:          (num)  => api.get(`/orders/track/${num}`),

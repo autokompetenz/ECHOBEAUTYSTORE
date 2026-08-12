@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuthStore, useLangStore, useCartStore } from '../store';
+import { useAuthStore, useLangStore } from '../store';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { t } from '../utils/i18n';
 
 function pathMatchesClientNav(pathname) {
-  if (/^\/cart\/?$/.test(pathname)) return true;
   if (/^\/catalog\/?$/.test(pathname)) return true;
   if (/^\/order-confirm\//.test(pathname)) return true;
   if (/^\/track/.test(pathname)) return true;
@@ -23,7 +22,6 @@ export default function ClientBottomNav() {
   const { pathname } = useLocation();
   const { isAuthenticated } = useAuthStore();
   const { lang } = useLangStore();
-  const { cartCount } = useCartStore();
   const { isMobile } = useBreakpoint();
   const l = lang || 'fr';
 
@@ -31,7 +29,6 @@ export default function ClientBottomNav() {
 
   const items = [
     { to: '/catalog', label: t('nav_catalog', l), icon: '✨', match: (p) => p.startsWith('/catalog') },
-    { to: '/cart', label: t('nav_cart', l), icon: '🛒', match: (p) => p === '/cart', badge: cartCount },
     { to: '/orders', label: t('nav_orders', l), icon: '📋', match: (p) => p.startsWith('/orders') },
     { to: '/track', label: t('nav_track', l), icon: '📍', match: (p) => p.startsWith('/track') },
   ];

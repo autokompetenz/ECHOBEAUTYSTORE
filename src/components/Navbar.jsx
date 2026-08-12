@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore, useCartStore, useLangStore, useThemeStore } from '../store';
+import { useAuthStore, useLangStore, useThemeStore } from '../store';
 import { t } from '../utils/i18n';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout, isAdmin } = useAuthStore();
-  const { cartCount, fetchCount } = useCartStore();
   const { lang } = useLangStore();
   const { theme, toggle } = useThemeStore();
   const { isMobile } = useBreakpoint();
@@ -24,7 +23,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  useEffect(() => { if (isAuthenticated) fetchCount(); }, [isAuthenticated]);
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   useEffect(() => {
@@ -150,34 +148,6 @@ export default function Navbar() {
 
         {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 1 }}>
-
-          {/* Cart */}
-          {
-            <Link to="/cart" style={{
-              position: 'relative', width: 38, height: 38,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRadius: 8, background: btnBg,
-              border: `1px solid ${btnBorder(false)}`,
-              color: iconColor, transition: 'all 0.2s', flexShrink: 0,
-            }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--red)'; e.currentTarget.style.color = 'var(--red)'; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = btnBorder(false); e.currentTarget.style.color = iconColor; }}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
-              </svg>
-              {cartCount > 0 && (
-                <span style={{
-                  position: 'absolute', top: -5, right: -5,
-                  width: 16, height: 16, background: 'var(--red)', color: '#fff',
-                  fontSize: 9, fontWeight: 800, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px solid var(--bg)',
-                }}>
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          }
 
           {/* Unified menu button */}
           <div style={{ position: 'relative' }} ref={menuRef}>

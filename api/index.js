@@ -216,7 +216,6 @@ app.get('/api/products/:id', async (req, res) => {
     if (isNaN(productId) || productId <= 0) return res.status(400).json({ error: 'Invalid product ID - must be a positive number' });
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      include: { _count: { select: { cartItems: true } } }
     });
     if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
     res.json({ product });
@@ -317,77 +316,6 @@ app.delete('/api/products/:id', authenticateToken, requireAdmin, async (req, res
     ]);
     res.json({ success: true, message: 'Produit supprimé' });
   } catch (e) { console.error('Delete product error:', e); res.status(500).json({ error: 'Erreur lors de la suppression du produit' }); }
-});
-
-// ─── Cart ─────────────────────────────────────────────────────────────────────
-
-app.get('/api/cart', authenticateToken, async (req, res) => {
-  try {
-    const items = await prisma.cart.findMany({
-      where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' },
-    });
-    const cartItems = items.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
-    const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-    res.json({ cartItems, total, count: cartItems.length });
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
-});
-
-app.get('/api/cart/count', authenticateToken, async (req, res) => {
-  try {
-    const count = await prisma.cart.count({ where: { userId: req.user.id } });
-    res.json({ count });
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
-});
-
-app.post('/api/cart', authenticateToken, async (req, res) => {
-  try {
-    const { productId, quantity = 1 } = req.body;
-    const product = await prisma.product.findUnique({ where: { id: parseInt(productId) } });
-    if (!product || !product.isActive) return res.status(404).json({ error: 'Produit non trouvé' });
-    if (product.stock < quantity) return res.status(400).json({ error: 'Stock insuffisant' });
-
-    const existingItem = await prisma.cart.findFirst({ where: { userId: req.user.id, productId: parseInt(productId) } });
-
-    if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
-      if (product.stock < newQuantity) return res.status(400).json({ error: 'Stock insuffisant' });
-      await prisma.cart.update({ where: { id: existingItem.id }, data: { quantity: newQuantity } });
-    } else {
-      await prisma.cart.create({ data: { userId: req.user.id, productId: parseInt(productId), quantity } });
-    }
-
-    const updatedCart = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' } });
-    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
-    const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-    res.status(existingItem ? 200 : 201).json({ cartItems, total, count: cartItems.length });
-  } catch (e) {
-    console.error('POST /api/cart error:', e);
-    res.status(500).json({ error: e.message || 'Erreur serveur' });
-  }
-});
-
-app.put('/api/cart/:productId', authenticateToken, async (req, res) => {
-  try {
-    const { quantity } = req.body;
-    const cartItem = await prisma.cart.findFirst({ where: { userId: req.user.id, productId: parseInt(req.params.productId) }, include: { product: true } });
-    if (!cartItem) return res.status(404).json({ error: 'Article non trouvé dans le panier' });
-    if (quantity > cartItem.product.stock) return res.status(400).json({ error: 'Stock insuffisant' });
-    await prisma.cart.update({ where: { id: cartItem.id }, data: { quantity } });
-    const updatedCart = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true }, orderBy: { createdAt: 'desc' } });
-    const cartItems = updatedCart.map(item => ({ id: item.id, quantity: item.quantity, productId: item.productId, product: item.product }));
-    const total = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-    res.json({ cartItems, total, count: cartItems.length });
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
-});
-
-app.delete('/api/cart/:productId', authenticateToken, async (req, res) => {
-  try {
-    const productIdNum = Number(req.params.productId);
-    if (isNaN(productIdNum) || productIdNum <= 0) return res.status(400).json({ error: 'Invalid product ID - must be a positive number' });
-    await prisma.cart.deleteMany({ where: { userId: req.user.id, productId: productIdNum } });
-    const cartCount = await prisma.cart.count({ where: { userId: req.user.id } });
-    res.json({ success: true, cartCount });
-  } catch (e) { res.status(500).json({ error: 'Erreur serveur' }); }
 });
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
@@ -498,64 +426,6 @@ app.post('/api/orders/guest', async (req, res) => {
     console.error('Guest order error:', e);
     res.status(500).json({ error: 'Erreur serveur' });
   }
-});
-
-app.post('/api/orders', authenticateToken, async (req, res) => {
-  try {
-    const { shippingAddress, notes } = req.body;
-    if (!shippingAddress?.trim()) return res.status(400).json({ error: 'Adresse de livraison requise' });
-
-    const cartItems = await prisma.cart.findMany({ where: { userId: req.user.id }, include: { product: true } });
-    if (cartItems.length === 0) return res.status(400).json({ error: 'Panier vide' });
-
-    for (const item of cartItems) {
-      if (item.product.stock < item.quantity) return res.status(400).json({ error: `Stock insuffisant : ${item.product.name}` });
-    }
-
-    const subtotal = cartItems.reduce((s, i) => s + i.product.price * i.quantity, 0);
-
-    let orderNumber, exists = true;
-    while (exists) {
-      orderNumber = generateOrderNumber();
-      exists = !!(await prisma.order.findUnique({ where: { orderNumber } }));
-    }
-
-    const order = await prisma.$transaction(async (tx) => {
-      const newOrder = await tx.order.create({ data: { orderNumber, userId: req.user.id, shippingAddress, notes: notes || null, totalPrice: subtotal } });
-      await tx.orderItem.createMany({ data: cartItems.map(i => ({ orderId: newOrder.id, productId: i.productId, quantity: i.quantity, unitPrice: i.product.price })) });
-      for (const item of cartItems) { await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } }); }
-      await tx.orderTracking.create({ data: { orderId: newOrder.id, status: 'pending', comment: 'Commande reçue' } });
-      await tx.cart.deleteMany({ where: { userId: req.user.id } });
-      return newOrder;
-    });
-
-    // Email de confirmation (avant la réponse pour garantir l'envoi en serverless)
-    try {
-      await sendOrderConfirmationEmail({
-        email: req.user.email, firstName: req.user.firstName,
-        order: { ...order, createdAt: order.createdAt || new Date() },
-        items: cartItems.map(i => ({ product: i.product, unitPrice: i.product.price, quantity: i.quantity })),
-      });
-    } catch (emailErr) {
-      console.error('Order confirmation email error:', emailErr);
-    }
-
-    // Notification à l'admin
-    try {
-      await sendAdminOrderNotification({
-        customerName: `${req.user.firstName} ${req.user.lastName}`,
-        customerEmail: req.user.email,
-        customerPhone: req.user.phone,
-        shippingAddress,
-        orderNumber: order.orderNumber, order,
-        items: cartItems.map(i => ({ product: i.product, unitPrice: i.product.price, quantity: i.quantity })),
-      });
-    } catch (emailErr) {
-      console.error('Admin order notification error:', emailErr);
-    }
-
-    res.status(201).json({ success: true, orderNumber: order.orderNumber, order });
-  } catch (e) { console.error('Create order error:', e); res.status(500).json({ error: 'Erreur serveur' }); }
 });
 
 app.get('/api/orders', authenticateToken, async (req, res) => {

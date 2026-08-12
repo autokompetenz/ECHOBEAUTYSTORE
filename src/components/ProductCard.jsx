@@ -1,29 +1,23 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { formatFCFA } from '../utils/helpers';
-import { useCartStore, useToastStore, useLangStore } from '../store';
+import { formatFCFA, buildWhatsAppProductOrder } from '../utils/helpers';
+import { useToastStore, useLangStore } from '../store';
 import { t } from '../utils/i18n';
 
 export default function ProductCard({ product, index = 0 }) {
-  const { addItem } = useCartStore();
   const { addToast } = useToastStore();
   const { lang } = useLangStore();
-  const [adding, setAdding] = useState(false);
+  const [qty, setQty] = useState(1);
   const [hovered, setHovered] = useState(false);
   const l = lang || 'fr';
 
-  const handleAddToCart = async (e) => {
+  const handleOrder = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      setAdding(true);
-      // On passe l'objet product complet pour supporter le panier invité
-      await addItem(product, 'full');
-      addToast(`${product.name} — ${t('add_to_cart', l)} ✓`, 'success');
-    } catch (err) {
-      addToast(err.response?.data?.error || 'Error', 'error');
-    } finally { setAdding(false); }
+    const url = buildWhatsAppProductOrder(product, qty);
+    window.open(url, '_blank');
+    addToast(`${product.name} — ${l==='fr'?'Redirection vers WhatsApp…':l==='en'?'Redirecting to WhatsApp…':l==='de'?'Weiterleitung zu WhatsApp…':'جارٍ التحويل إلى واتساب…'}`, 'success');
   };
 
   const isOutOfStock = product.stock === 0;
@@ -100,19 +94,39 @@ export default function ProductCard({ product, index = 0 }) {
           </div>
         </div>
 
-        <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:10 }}>
-          <div>
-            <div style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize:26, color:'var(--text)', letterSpacing:'-0.02em', lineHeight:1 }}>
-              {formatFCFA(product.price)}
-            </div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
+          <div style={{ fontFamily:"'Outfit',sans-serif", fontWeight:900, fontSize:26, color:'var(--text)', letterSpacing:'-0.02em', lineHeight:1 }}>
+            {formatFCFA(product.price)}
           </div>
-          <button onClick={handleAddToCart} disabled={isOutOfStock||adding}
-            style={{ padding:'10px 16px', borderRadius:6, fontSize:11, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase', cursor:isOutOfStock?'not-allowed':'pointer', border:'none', fontFamily:"'Outfit',sans-serif", transition:'all 0.2s', background:isOutOfStock?'var(--bg-card2)':adding?'rgba(200,16,46,0.5)':'var(--red)', color:isOutOfStock?'var(--text-3)':'#fff', flexShrink:0 }}
-            onMouseOver={e=>{ if(!isOutOfStock&&!adding) e.currentTarget.style.background='var(--red-dark)'; }}
-            onMouseOut={e=>{ if(!isOutOfStock&&!adding) e.currentTarget.style.background='var(--red)'; }}>
-            {adding?'...':isOutOfStock?t('out_of_stock',l):'+ '+t('add_to_cart',l).split(' ')[0]}
-          </button>
+          {/* Quantité */}
+          <div style={{ display:'flex', alignItems:'center', border:'1px solid var(--border)', borderRadius:6, overflow:'hidden', background:'var(--bg-card2)', flexShrink:0 }}>
+            <button
+              onClick={e=>{e.preventDefault();e.stopPropagation();setQty(q=>Math.max(1,q-1));}}
+              disabled={isOutOfStock||qty<=1}
+              aria-label="Réduire la quantité"
+              style={{ width:30, height:30, border:'none', background:'transparent', color:'var(--text)', fontSize:18, fontWeight:700, lineHeight:1, cursor:isOutOfStock||qty<=1?'not-allowed':'pointer', opacity:isOutOfStock||qty<=1?0.3:1, fontFamily:"'Outfit',sans-serif" }}
+              onMouseOver={e=>{ if(qty>1&&!isOutOfStock) e.currentTarget.style.background='var(--bg-card)'; }}
+              onMouseOut={e=>{ e.currentTarget.style.background='transparent'; }}
+            >−</button>
+            <span style={{ width:28, textAlign:'center', fontSize:14, fontWeight:800, color:'var(--text)', fontFamily:"'Outfit',sans-serif", borderLeft:'1px solid var(--border)', borderRight:'1px solid var(--border)' }}>{qty}</span>
+            <button
+              onClick={e=>{e.preventDefault();e.stopPropagation();setQty(q=>Math.min(product.stock,q+1));}}
+              disabled={isOutOfStock||qty>=product.stock}
+              aria-label="Augmenter la quantité"
+              style={{ width:30, height:30, border:'none', background:'transparent', color:'var(--text)', fontSize:16, fontWeight:700, lineHeight:1, cursor:isOutOfStock||qty>=product.stock?'not-allowed':'pointer', opacity:isOutOfStock||qty>=product.stock?0.3:1, fontFamily:"'Outfit',sans-serif" }}
+              onMouseOver={e=>{ if(qty<product.stock&&!isOutOfStock) e.currentTarget.style.background='var(--bg-card)'; }}
+              onMouseOut={e=>{ e.currentTarget.style.background='transparent'; }}
+            >+</button>
+          </div>
         </div>
+
+        {/* Commander */}
+        <button onClick={handleOrder} disabled={isOutOfStock}
+          style={{ width:'100%', marginTop:12, padding:'12px 16px', borderRadius:6, fontSize:12, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase', cursor:isOutOfStock?'not-allowed':'pointer', border:'none', fontFamily:"'Outfit',sans-serif", transition:'all 0.2s', background:isOutOfStock?'var(--bg-card2)':'linear-gradient(135deg,#25D366,#128C7E)', color:isOutOfStock?'var(--text-3)':'#fff' }}
+          onMouseOver={e=>{ if(!isOutOfStock) e.currentTarget.style.background='linear-gradient(135deg,#128C7E,#075E54)'; }}
+          onMouseOut={e=>{ if(!isOutOfStock) e.currentTarget.style.background='linear-gradient(135deg,#25D366,#128C7E)'; }}>
+          {isOutOfStock?t('out_of_stock',l):'💬 '+t('order_now',l)}
+        </button>
       </div>
     </motion.div>
   );
