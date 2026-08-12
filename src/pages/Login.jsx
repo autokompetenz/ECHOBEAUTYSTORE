@@ -4,6 +4,7 @@ import { authAPI } from '../services/api';
 import { useAuthStore, useToastStore, useLangStore } from '../store';
 import { t } from '../utils/i18n';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { SITE } from '../utils/site';
 
 export default function Login() {
   const { login } = useAuthStore();
@@ -59,7 +60,7 @@ export default function Login() {
         </form>
 
         <div style={{ textAlign:'center', marginTop:24 }}>
-          <a href="https://wa.me/393505308335" target="_blank" rel="noopener noreferrer"
+          <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer"
             style={{ display:'inline-flex', alignItems:'center', gap:8, color:'#25D366', textDecoration:'none', fontWeight:600, fontSize:14 }}>
             💬 {lang==='fr'?'Besoin d\'aide ? WhatsApp':lang==='en'?'Need help? WhatsApp':lang==='de'?'Hilfe? WhatsApp':lang==='es'?'¿Necesita ayuda? WhatsApp':lang==='it'?'Aiuto? WhatsApp':'Precisa de ajuda? WhatsApp'}
           </a>

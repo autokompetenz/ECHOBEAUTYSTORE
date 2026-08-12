@@ -5,7 +5,7 @@ export const SITE = {
   country: 'Bénin',
   email: 'contact@echobeautystore.bj',
   phone: '+229 45 56 30 69',
-  whatsapp: '22945563069',
+  whatsapp: '22966344227',
   address: 'Cotonou, Bénin',
   ifu: 'IFU : 0202289743132',
   rccm: 'RCCM : à compléter',
