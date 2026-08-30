@@ -10,8 +10,7 @@ const LEGAL_PAGES = {
 <h2>Éditeur du site</h2>
 <p><strong>${SITE.name}</strong><br/>
 ${SITE.address}<br/>
-Téléphone : ${SITE.phone}<br/>
-Email : ${SITE.email}</p>
+Téléphone : ${SITE.phone}</p>
 <h2>Identification de l'entreprise</h2>
 <p>Entreprise de droit béninois spécialisée dans la vente de produits de remise en forme, de massage, de minceur et de bien-être adulte.<br/>
 ${SITE.ifu}<br/>
@@ -32,15 +31,15 @@ Zone de livraison : Cotonou (24-48h) et tout le Bénin.</p>
     title: 'Politique de Confidentialité',
     content: `
 <h2>1. Responsable du traitement</h2>
-<p>${SITE.name}, ${SITE.address} — ${SITE.email}</p>
+<p>${SITE.name}, ${SITE.address}</p>
 <h2>2. Données collectées</h2>
 <ul><li>Nom, prénom, email, téléphone, adresse de livraison</li><li>Historique des commandes</li><li>Données techniques de navigation (cookies)</li></ul>
 <h2>3. Utilisation des données</h2>
-<ul><li>Traitement et suivi de vos commandes</li><li>Livraison à Cotonou et dans tout le Bénin</li><li>Service client (email, téléphone, WhatsApp)</li><li>Amélioration de nos services</li></ul>
+<ul><li>Traitement et suivi de vos commandes</li><li>Livraison à Cotonou et dans tout le Bénin</li><li>Service client (téléphone, WhatsApp)</li><li>Amélioration de nos services</li></ul>
 <h2>4. Protection des données</h2>
 <p>Conformément à la loi n° 2017-20 du 20 avril 2018 portant code du numérique en République du Bénin, vos données sont protégées. Mots de passe chiffrés (bcrypt), JWT avec expiration, connexions HTTPS.</p>
 <h2>5. Vos droits</h2>
-<p>Accès, rectification, effacement et opposition de vos données. Contact : ${SITE.email}</p>`,
+<p>Accès, rectification, effacement et opposition de vos données. Contact : ${SITE.phone}</p>`,
   },
 
   '/cgv': {
@@ -72,7 +71,7 @@ Zone de livraison : Cotonou (24-48h) et tout le Bénin.</p>
 <h2>Gestion</h2>
 <p>Via la bannière à la première visite ou via les paramètres de votre navigateur.</p>
 <h2>Contact</h2>
-<p>${SITE.email}</p>`,
+<p>${SITE.phone}</p>`,
   },
 };
 

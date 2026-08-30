@@ -219,13 +219,12 @@ function FAQSection({ isMobile }) {
         <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ duration:0.5, delay:0.3 }}
           style={{ marginTop:40, textAlign:'center', padding: isMobile ? '24px 20px' : '32px 40px', background:'linear-gradient(135deg,rgba(200,16,46,0.06),rgba(200,16,46,0.02))', border:'1px solid rgba(200,16,46,0.15)', borderRadius:16 }}>
           <p style={{ fontFamily:"'Outfit',sans-serif", fontWeight:700, fontSize: isMobile ? 15 : 17, color:'var(--text)', marginBottom:8 }}>Une autre question ?</p>
-          <p style={{ fontSize:14, color:'var(--text-3)', marginBottom:20 }}>Notre équipe répond sous 24h par WhatsApp ou email.</p>
+          <p style={{ fontSize:14, color:'var(--text-3)', marginBottom:20 }}>Notre équipe répond sous 24h par WhatsApp.</p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer"
               style={{ background:'#25D366', color:'#fff', textDecoration:'none', fontFamily:"'Outfit',sans-serif", fontSize:13, fontWeight:700, padding:'11px 22px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:8 }}>
               💬 WhatsApp
             </a>
-            <a href={`mailto:${SITE.email}`} className="btn-ghost" style={{ fontSize:13 }}>✉ Email</a>
           </div>
         </motion.div>
       </div>
@@ -400,24 +399,17 @@ export default function Home() {
 
           <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)', gap: isMobile ? 24 : 32 }}>
             {[
-              { img:'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&q=80', alt:'Qualité',
-                title:'Produits 100% authentiques',
+              { title:'Produits 100% authentiques',
                 desc:'Produits authentiques, sélectionnés auprès de fournisseurs officiels. Qualité garantie sur toute notre gamme.', dir:-20 },
-              { img:'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&q=80', alt:'Prix',
-                title:'Prix compétitifs',
+              { title:'Prix compétitifs',
                 desc:'Tarifs avantageux pour les particuliers comme pour les professionnels. Remises volume pour les revendeurs, salons et boutiques de beauté.', dir:20 },
-              { img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80', alt:'Livraison',
-                title:'Livraison rapide au Bénin',
+              { title:'Livraison rapide au Bénin',
                 desc:'Livraison à Cotonou en 24-48h et partout au Bénin. Emballage soigné pour protéger vos produits. Suivi en temps réel de votre commande.', dir:-20 },
-              { img:'https://images.unsplash.com/photo-1612817288484-6f916006741a?w=300&q=80', alt:'Support',
-                title:'Support expert 7j/7',
-                desc:'Notre équipe de spécialistes est disponible par WhatsApp, email et téléphone pour vous conseiller et accompagner vos commandes.', dir:20 },
+              { title:'Support expert 7j/7',
+                desc:'Notre équipe de spécialistes est disponible par WhatsApp et téléphone pour vous conseiller et accompagner vos commandes.', dir:20 },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity:0, x: item.dir }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ duration:0.6, delay:i * 0.1 }}
                 style={{ display:'flex', gap:20, alignItems:'start', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:16, padding: isMobile ? 20 : 28, boxShadow:'var(--shadow-sm)' }}>
-                <div style={{ width: isMobile ? 80 : 120, height: isMobile ? 80 : 120, borderRadius:12, overflow:'hidden', flexShrink:0 }}>
-                  <img src={item.img} alt={item.alt} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                </div>
                 <div style={{ flex:1 }}>
                   <h3 style={{ fontFamily:"'Outfit',sans-serif", fontWeight:800, fontSize: isMobile ? 16 : 18, color:'var(--text)', marginBottom:8 }}>{item.title}</h3>
                   <p style={{ fontSize:14, color:'var(--text-3)', lineHeight:1.6 }}>{item.desc}</p>
@@ -491,7 +483,6 @@ export default function Home() {
                 style={{ background:'#25D366', color:'#fff', textDecoration:'none', fontFamily:"'Outfit',sans-serif", fontSize:14, fontWeight:700, padding:'13px 24px', borderRadius:8, display:'inline-flex', alignItems:'center', gap:8 }}>
                 💬 WhatsApp
               </a>
-              <a href={`mailto:${SITE.email}`} className="btn-ghost" style={{ fontSize:13 }}>✉ Email</a>
             </div>
           </div>
           <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:14, padding: isMobile ? 22 : 32, boxShadow:'var(--shadow-sm)' }}>
@@ -499,14 +490,14 @@ export default function Home() {
             {SITE.hours.map(({ day, hours }) => (
               <div key={day} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'13px 0', borderBottom:'1px solid var(--border)' }}>
                 <span style={{ fontSize:14, color:'var(--text-2)', fontWeight:600 }}>{day}</span>
-                <span style={{ fontSize:14, color:hours===SITE.hours[2].hours?'#DC2626':'var(--green)', fontWeight:700 }}>{hours}</span>
+                <span style={{ fontSize:14, color:hours==='Fermé'?'#DC2626':'var(--green)', fontWeight:700 }}>{hours}</span>
               </div>
             ))}
             <div style={{ marginTop:20, padding:'14px 18px', background:'var(--red-bg)', border:'1px solid var(--red-border)', borderRadius:8 }}>
               <p style={{ fontSize:13, color:'var(--text-2)', lineHeight:1.6 }}>
                 📍 {SITE.address}<br/>
                 🏢 {SITE.ifu}<br/>
-                ✉ <a href={`mailto:${SITE.email}`} style={{ color:'var(--red)', textDecoration:'none', fontWeight:600 }}>{SITE.email}</a>
+                📞 {SITE.phone}
               </p>
             </div>
           </div>
@@ -541,7 +532,6 @@ export default function Home() {
                 <p style={{ fontSize:13, color:'var(--text-3)', lineHeight:1.8 }}>
                   📍 {SITE.address}<br/>
                   📞 {SITE.phone}<br/>
-                  ✉ {SITE.email}<br/>
                   💬 <a href={`https://wa.me/${SITE.whatsapp}`} style={{ color:'var(--red)', textDecoration:'none' }}>WhatsApp</a>
                 </p>
               </div>

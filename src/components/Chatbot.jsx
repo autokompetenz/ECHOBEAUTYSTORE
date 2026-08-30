@@ -5,10 +5,10 @@ import { SITE } from '../utils/site';
 
 const RESPONSES = {
   fr: {
-    default:  `Merci pour votre message ! Notre équipe vous répond rapidement.\n📞 ${SITE.phone}\n📧 ${SITE.email}`,
-    horaires: "Nos horaires :\n🕗 Lun–Ven : 09h00 – 18h00\n🕘 Samedi : 09h00 – 14h00\n❌ Dimanche : Fermé",
-    prix:     "Tarifs compétitifs détail et gros !\nRemises volume disponibles pour les professionnels.\n\n💬 WhatsApp : " + SITE.phone + "\n📧 " + SITE.email,
-    rdv:      `Pour prendre rendez-vous ou être conseillé :\n\n💬 WhatsApp : ${SITE.phone}\n📧 ${SITE.email}\n\nNous répondons rapidement !`,
+    default:  `Merci pour votre message ! Notre équipe vous répond rapidement.\n📞 ${SITE.phone}`,
+    horaires: "Nos horaires :\n🕙 Lun–Sam : 10h00 – 21h30\n❌ Dimanche : Fermé",
+    prix:     "Tarifs compétitifs détail et gros !\nRemises volume disponibles pour les professionnels.\n\n💬 WhatsApp : " + SITE.phone,
+    rdv:      `Pour prendre rendez-vous ou être conseillé :\n\n💬 WhatsApp : ${SITE.phone}\n\nNous répondons rapidement !`,
     adresse:  `📍 Notre boutique :\n${SITE.address}\n\n🛵 Livraison à Cotonou en 24-48h et partout au Bénin !`,
     bonjour:  `Bonjour ! Bienvenue chez Echo Beauty Store 👋\n\nComment puis-je vous aider ?\n• Horaires d'ouverture\n• Prendre rendez-vous\n• Tarifs & devis\n• Notre adresse`,
     garantie: "Oui ! Nous offrons une garantie sur :\n✅ Tous les produits vendus\n✅ Produits authentiques certifiés\n✅ Service après-vente inclus\nVotre satisfaction est notre priorité !",
