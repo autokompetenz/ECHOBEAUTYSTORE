@@ -42,14 +42,18 @@ git push -u origin main
 1. [vercel.com](https://vercel.com) → Import GitHub repo
 2. **Root Directory : laisser vide** (à la racine)
 3. Framework: **Vite**
-4. Environment Variables → ajouter :
+4. Environment Variables → ajouter (voir `.env.example`) :
 
 | Variable | Valeur |
 |---|---|
-| `DATABASE_URL` | postgresql://postgres.XXX:PWD@pooler.supabase.com:6543/postgres?pgbouncer=true |
-| `DIRECT_URL` | postgresql://postgres.XXX:PWD@pooler.supabase.com:5432/postgres |
-| `JWT_SECRET` | (chaîne aléatoire 64+ caractères) |
+| `DATABASE_URL` | URL **poolée** Supabase : `postgresql://postgres.XXX:PWD@pooler.supabase.com:6543/postgres?pgbouncer=true` |
+| `DIRECT_URL` | URL directe Supabase : `postgresql://postgres.XXX:PWD@pooler.supabase.com:5432/postgres` (migrations) |
+| `SUPABASE_URL` | `https://<PROJECT_REF>.supabase.co` (upload des images produits) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` Supabase (stockage images) — **jamais côté client** |
+| `JWT_SECRET` | Chaîne aléatoire de 64+ caractères |
 | `ADMIN_PIN` | Code PIN à 4 chiffres pour l'accès admin |
+| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Paramètres SMTP pour les emails transactionnels |
+| `FROM_NAME`, `FROM_EMAIL`, `APP_URL` | Expéditeur et URL publique du site |
 
 5. Deploy → ✅ https://echobeautystore.vercel.app
 
