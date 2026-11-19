@@ -57,8 +57,8 @@ git push -u origin main
 |---|---|
 | `DATABASE_URL` | URL **poolée** Neon : `postgresql://USER:PWD@ENDPOINT-pooler.REGION.aws.neon.tech/neondb?sslmode=require` |
 | `DIRECT_URL` | URL directe Neon (sans `-pooler`) — utilisée par Prisma |
-| `CLOUDINARY_URL` | `cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>` (ou les 3 variables séparées) |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Alternatives à `CLOUDINARY_URL` — **jamais côté client** |
+| `CLOUDINARY_URL` | **Option recommandée** : `cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>` — une seule variable, **jamais côté client** |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Alternative uniquement si `CLOUDINARY_URL` n'est pas utilisée |
 | `JWT_SECRET` | Chaîne aléatoire de 64+ caractères |
 | `ADMIN_PIN` | Code PIN à 4 chiffres pour l'accès admin |
 | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Paramètres SMTP pour les emails transactionnels |
