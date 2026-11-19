@@ -21,15 +21,23 @@ site_cosmetique/
 │   └── utils/        ← helpers.js, i18n.js
 ├── vercel.json       ← Routes + CORS headers
 ├── package.json      ← Unified dependencies
-└── supabase-schema.sql ← Run in Supabase SQL Editor
+├── supabase-schema.sql ← Schéma SQL historique (les tables sont gérées par prisma/schema.prisma)
+└── .env.example        ← Liste des variables d'environnement
 ```
 
 ## Déploiement sur Vercel
 
-### 1. Supabase
-1. [supabase.com](https://supabase.com) → New project → Frankfurt
-2. SQL Editor → coller `supabase-schema.sql` → Run
-3. Settings → Database → copier `DATABASE_URL` et `DIRECT_URL`
+### 1. Base de données (Neon)
+1. [neon.tech](https://neon.tech) → New project (region proche des utilisateurs)
+2. Dashboard → **Connection Details** → copier les deux chaînes :
+   - `DATABASE_URL` : endpoint avec `-pooler` (runtime / API Vercel)
+   - `DIRECT_URL` : endpoint sans `-pooler` (Prisma)
+3. Créer les tables : `npx prisma db push` (ou `prisma migrate deploy` une fois les migrations versionnées)
+
+### Stockage des images (Supabase, temporaire)
+Les photos produits utilisent encore Supabase Storage (`bucket products`, public).
+Garder `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` tant que le passage à Vercel Blob n'est pas effectué.
+Le bucket et ses policies sont définis à la fin de `supabase-schema.sql` (section `storage.*`).
 
 ### 2. GitHub
 ```bash
@@ -46,9 +54,9 @@ git push -u origin main
 
 | Variable | Valeur |
 |---|---|
-| `DATABASE_URL` | URL **poolée** Supabase : `postgresql://postgres.XXX:PWD@pooler.supabase.com:6543/postgres?pgbouncer=true` |
-| `DIRECT_URL` | URL directe Supabase : `postgresql://postgres.XXX:PWD@pooler.supabase.com:5432/postgres` (migrations) |
-| `SUPABASE_URL` | `https://<PROJECT_REF>.supabase.co` (upload des images produits) |
+| `DATABASE_URL` | URL **poolée** Neon : `postgresql://USER:PWD@ENDPOINT-pooler.REGION.aws.neon.tech/neondb?sslmode=require` |
+| `DIRECT_URL` | URL directe Neon (sans `-pooler`) — utilisée par Prisma |
+| `SUPABASE_URL` | `https://<PROJECT_REF>.supabase.co` (upload des images produits, temporaire) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` Supabase (stockage images) — **jamais côté client** |
 | `JWT_SECRET` | Chaîne aléatoire de 64+ caractères |
 | `ADMIN_PIN` | Code PIN à 4 chiffres pour l'accès admin |
@@ -58,7 +66,7 @@ git push -u origin main
 5. Deploy → ✅ https://echobeautystore.vercel.app
 
 ### 4. Seeder (une seule fois)
-Dans Supabase → SQL Editor, exécuter le seed manuellement, ou:
+Le schéma étant déjà créé via `prisma db push`, il suffit de lancer le seed (une seule fois) :
 ```bash
 # Depuis votre machine avec .env configuré
 npm run seed
