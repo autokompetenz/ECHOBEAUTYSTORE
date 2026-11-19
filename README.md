@@ -21,7 +21,7 @@ site_cosmetique/
 │   └── utils/        ← helpers.js, i18n.js
 ├── vercel.json       ← Routes + CORS headers
 ├── package.json      ← Unified dependencies
-├── supabase-schema.sql ← Schéma SQL historique (les tables sont gérées par prisma/schema.prisma)
+├── legacy-schema.sql   ← Schéma SQL historique (source de vérité : prisma/schema.prisma)
 └── .env.example        ← Liste des variables d'environnement
 ```
 
@@ -34,10 +34,11 @@ site_cosmetique/
    - `DIRECT_URL` : endpoint sans `-pooler` (Prisma)
 3. Créer les tables : `npx prisma db push` (ou `prisma migrate deploy` une fois les migrations versionnées)
 
-### Stockage des images (Supabase, temporaire)
-Les photos produits utilisent encore Supabase Storage (`bucket products`, public).
-Garder `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` tant que le passage à Vercel Blob n'est pas effectué.
-Le bucket et ses policies sont définis à la fin de `supabase-schema.sql` (section `storage.*`).
+### Stockage des images (Cloudinary)
+Les photos produits sont uploadées dans le folder `echobeautystore/products` via l'API Cloudinary.
+Configurer `CLOUDINARY_URL` (ou `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET`).
+Migration ponctuelle depuis d'anciennes URLs publiques : `npm run migrate:images`
+(le mapping ancienne URL → nouvelle URL est écrit dans `/tmp/opencode/cloudinary-image-map.json`).
 
 ### 2. GitHub
 ```bash
@@ -56,8 +57,8 @@ git push -u origin main
 |---|---|
 | `DATABASE_URL` | URL **poolée** Neon : `postgresql://USER:PWD@ENDPOINT-pooler.REGION.aws.neon.tech/neondb?sslmode=require` |
 | `DIRECT_URL` | URL directe Neon (sans `-pooler`) — utilisée par Prisma |
-| `SUPABASE_URL` | `https://<PROJECT_REF>.supabase.co` (upload des images produits, temporaire) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé `service_role` Supabase (stockage images) — **jamais côté client** |
+| `CLOUDINARY_URL` | `cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>` (ou les 3 variables séparées) |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Alternatives à `CLOUDINARY_URL` — **jamais côté client** |
 | `JWT_SECRET` | Chaîne aléatoire de 64+ caractères |
 | `ADMIN_PIN` | Code PIN à 4 chiffres pour l'accès admin |
 | `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Paramètres SMTP pour les emails transactionnels |

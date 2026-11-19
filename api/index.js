@@ -4,16 +4,26 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
+const { v2: cloudinary } = require('cloudinary');
 const { prisma } = require('../lib/prisma.js');
 const { sendWelcomeEmail, sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendAdminOrderNotification } = require('../lib/mailer.js');
 
 const app = express();
 
-if (!process.env.SUPABASE_URL) throw new Error('SUPABASE_URL manquant');
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY manquant');
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config(process.env.CLOUDINARY_URL);
+} else {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
+const cloudinaryConfig = cloudinary.config();
+if (!cloudinaryConfig.cloud_name || !cloudinaryConfig.api_key || !cloudinaryConfig.api_secret) {
+  throw new Error('Configuration Cloudinary manquante (CLOUDINARY_URL ou CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET)');
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -30,14 +40,16 @@ async function uploadProductImages(files) {
   );
   const results = await Promise.all(
     sorted.map(async (file, index) => {
-      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileName = `${Date.now()}-${index}-${safeName}`;
-      const { error, data } = await supabase.storage
-        .from('products')
-        .upload(fileName, file.buffer, { contentType: file.mimetype });
-      if (error) { console.error('Supabase upload error:', JSON.stringify(error)); throw error; }
-      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-      return { index, url: publicUrlData.publicUrl };
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '');
+      const publicId = `${Date.now()}-${index}-${safeName}`;
+      const dataUri = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
+      const result = await cloudinary.uploader.upload(dataUri, {
+        folder: 'echobeautystore/products',
+        public_id: publicId,
+        resource_type: 'image',
+        overwrite: true,
+      });
+      return { index, url: result.secure_url };
     })
   );
   const urls = {};
@@ -242,7 +254,7 @@ app.post('/api/products', authenticateToken, requireAdmin, upload.any(), async (
 
     if (req.files && req.files.length > 0) {
       try { Object.assign(productData, await uploadProductImages(req.files)); }
-      catch (uploadErr) { console.error('Supabase upload error:', uploadErr); return res.status(500).json({ error: "Erreur lors de l'upload des images" }); }
+      catch (uploadErr) { console.error('Cloudinary upload error:', uploadErr); return res.status(500).json({ error: "Erreur lors de l'upload des images" }); }
     }
 
     const product = await prisma.product.create({ data: productData });
@@ -273,7 +285,7 @@ app.put('/api/products/:id', authenticateToken, requireAdmin, upload.any(), asyn
 
     if (req.files && req.files.length > 0) {
       try { Object.assign(productData, await uploadProductImages(req.files)); }
-      catch (uploadErr) { console.error('Supabase upload error:', uploadErr); return res.status(500).json({ error: "Erreur lors de l'upload des images" }); }
+      catch (uploadErr) { console.error('Cloudinary upload error:', uploadErr); return res.status(500).json({ error: "Erreur lors de l'upload des images" }); }
     }
 
     if (req.body.existingImages) {

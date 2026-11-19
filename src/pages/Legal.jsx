@@ -20,7 +20,7 @@ Immatriculation au registre du commerce et du crédit mobilier (RCCM) — ${SITE
 <p>Vente au détail et en gros d'articles de remise en forme, instruments de massage, produits amaigrissants et accessoires bien-être adulte (réservés aux personnes majeures, 18+).<br/>
 Zone de livraison : Cotonou (24-48h) et tout le Bénin.</p>
 <h2>Hébergement</h2>
-<p>Vercel Inc., 340 Pine Street, San Francisco, CA 94104, USA.<br/>Base de données : Supabase Inc., Singapore.</p>
+<p>Vercel Inc., 340 Pine Street, San Francisco, CA 94104, USA.<br/>Base de données : Neon (PostgreSQL).<br/>Stockage des images : Cloudinary.</p>
 <h2>Propriété intellectuelle</h2>
 <p>Tout le contenu (textes, images, marques, logos) est la propriété exclusive de ${SITE.name}. Reproduction interdite sans autorisation écrite préalable.</p>
 <h2>Droit applicable</h2>

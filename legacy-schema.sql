@@ -1,5 +1,6 @@
--- Echo Beauty Store — Supabase Schema
--- Run this in Supabase SQL Editor if Prisma migrate fails
+-- Echo Beauty Store — Schéma SQL historique (Supabase)
+-- Conservé à titre de référence. La source de vérité est prisma/schema.prisma (Neon).
+-- Le stockage des images est désormais géré par Cloudinary.
 
 CREATE TYPE "Role"         AS ENUM ('CLIENT', 'ADMIN');
 CREATE TYPE "Category"     AS ENUM ('REMISE_EN_FORME', 'INSTRUMENTS_MASSAGE', 'PRODUITS_AMAIGRISSANTS', 'JOUETS_ADULTES');
@@ -91,32 +92,3 @@ CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
   "started_at"          TIMESTAMP DEFAULT NOW(),
   "applied_steps_count" INT DEFAULT 0
 );
-
--- ─── Storage : bucket "products" (images produits) ────────────────────────────
--- Nécessaire pour l'upload des images depuis le panneau admin.
--- Le bucket DOIT être public pour que les URLs des images soient accessibles.
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('products', 'products', true)
-ON CONFLICT (id) DO NOTHING;
-
--- Lecture publique des images (frontend + emails)
-DROP POLICY IF EXISTS "Public read products" ON storage.objects;
-CREATE POLICY "Public read products"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'products');
-
--- Upload / modification : réservé aux utilisateurs connectés (admin)
-DROP POLICY IF EXISTS "Authenticated upload products" ON storage.objects;
-CREATE POLICY "Authenticated upload products"
-  ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'products');
-
-DROP POLICY IF EXISTS "Authenticated update products" ON storage.objects;
-CREATE POLICY "Authenticated update products"
-  ON storage.objects FOR UPDATE TO authenticated
-  USING (bucket_id = 'products');
-
-DROP POLICY IF EXISTS "Authenticated delete products" ON storage.objects;
-CREATE POLICY "Authenticated delete products"
-  ON storage.objects FOR DELETE TO authenticated
-  USING (bucket_id = 'products');
